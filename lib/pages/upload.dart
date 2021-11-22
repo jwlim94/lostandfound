@@ -23,6 +23,8 @@ class Upload extends StatefulWidget {
 }
 
 class _UploadState extends State<Upload> {
+  TextEditingController locationController = TextEditingController();
+  TextEditingController captionController = TextEditingController();
   // (image_picker: ^0.8.4+4 version) and (image_picker: ^0.7.4 version)
   // this is File because Widget image: FileImage() only accepts File
   File? file;
@@ -158,12 +160,42 @@ class _UploadState extends State<Upload> {
     // });
   }
 
+  createPostInFirestore(
+      {String? mediaUrl, String? location, String? description}) {
+    postRef
+        .doc(widget.currentUser!.id)
+        .collection('userPosts')
+        .doc(postId)
+        .set({
+      'postId': postId,
+      'ownerId': widget.currentUser!.id,
+      'username': widget.currentUser!.username,
+      'mediaUrl': mediaUrl,
+      'description': description,
+      'location': location,
+      'timestamp': timestamp,
+      'likes': {},
+    });
+  }
+
   handleSubmit() async {
     setState(() {
       isUploading = true;
     });
     await compressImage();
     String? mediaUrl = await uploadImage(file);
+    createPostInFirestore(
+        mediaUrl: mediaUrl,
+        location: locationController.text,
+        description: captionController.text);
+    // clearing out
+    captionController.clear();
+    locationController.clear();
+    setState(() {
+      file = null;
+      isUploading = false;
+      postId = const Uuid().v4();
+    });
   }
 
   buildUploadForm() {
@@ -220,32 +252,39 @@ class _UploadState extends State<Upload> {
             padding: EdgeInsets.only(top: 10.0),
           ),
           ListTile(
-              leading: CircleAvatar(
-                backgroundImage:
-                    CachedNetworkImageProvider(widget.currentUser!.photoUrl),
+            leading: CircleAvatar(
+              backgroundImage:
+                  CachedNetworkImageProvider(widget.currentUser!.photoUrl),
+            ),
+            title: Container(
+              width: 250.0,
+              child: TextField(
+                controller: captionController,
+                decoration: const InputDecoration(
+                  hintText: 'Write a caption...',
+                  border: InputBorder.none,
+                ),
               ),
-              title: Container(
-                  width: 250.0,
-                  child: const TextField(
-                      decoration: InputDecoration(
-                    hintText: 'Write a caption...',
-                    border: InputBorder.none,
-                  )))),
+            ),
+          ),
           const Divider(),
           ListTile(
-              leading: const Icon(
-                Icons.pin_drop,
-                color: Colors.teal,
-                size: 35.0,
+            leading: const Icon(
+              Icons.pin_drop,
+              color: Colors.teal,
+              size: 35.0,
+            ),
+            title: Container(
+              width: 250.0,
+              child: TextField(
+                controller: locationController,
+                decoration: const InputDecoration(
+                  hintText: 'Where was this photo taken?',
+                  border: InputBorder.none,
+                ),
               ),
-              title: Container(
-                  width: 250.0,
-                  child: const TextField(
-                    decoration: InputDecoration(
-                      hintText: 'Where was this photo taken?',
-                      border: InputBorder.none,
-                    ),
-                  ))),
+            ),
+          ),
           Container(
             width: 200.0,
             height: 100.0,

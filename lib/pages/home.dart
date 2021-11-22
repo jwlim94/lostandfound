@@ -17,6 +17,7 @@ final authHeaders = googleSignIn.currentUser!.authHeaders;
 // 'StorageReference' deprecated to 'Reference'
 final Reference storageRef = FirebaseStorage.instance.ref();
 final userRef = FirebaseFirestore.instance.collection('users');
+final postRef = FirebaseFirestore.instance.collection('posts');
 final DateTime timestamp = DateTime.now();
 User? currentUser;
 
