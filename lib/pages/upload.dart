@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_1/models/user.dart';
 import 'package:flutter_application_1/widgets/progress.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:image/image.dart' as im;
@@ -294,7 +296,7 @@ class _UploadState extends State<Upload> {
                 'Use current location',
                 style: TextStyle(color: Colors.white),
               ),
-              onPressed: () => print('get user location'),
+              onPressed: getUserLocation,
               icon: const Icon(
                 Icons.my_location,
                 color: Colors.white,
@@ -309,6 +311,20 @@ class _UploadState extends State<Upload> {
         ],
       ),
     );
+  }
+
+  getUserLocation() async {
+    final GeolocatorPlatform _geoLocatorPlatform = GeolocatorPlatform.instance;
+    final position = await _geoLocatorPlatform.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high);
+
+    final GeocodingPlatform _geoCodingPlatform = GeocodingPlatform.instance;
+    List<Placemark> placemarks = await _geoCodingPlatform
+        .placemarkFromCoordinates(position.latitude, position.longitude);
+    // this placemark gives a lot of information about the address(user location)
+    Placemark placemark = placemarks[0];
+    String formattedAddress = '${placemark.locality}, ${placemark.country}';
+    locationController.text = formattedAddress;
   }
 
   @override

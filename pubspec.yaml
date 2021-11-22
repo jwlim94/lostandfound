@@ -47,6 +47,8 @@ dependencies:
   path_provider: ^2.0.7 # used to compress image
   image: ^3.0.8 # used to conmpress image
   uuid: ^3.0.5 # used to conmpress image
+  geolocator: ^7.7.1 # used to get current location
+  geocoding: ^2.0.1 # used to get current location
 
 
 dev_dependencies:
