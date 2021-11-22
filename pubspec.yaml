@@ -34,13 +34,19 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
-  # firebase_auth: ^3.2.0
+  firebase_auth: ^3.2.0
   google_sign_in: ^5.2.1
   firebase_core: ^1.10.0
+  firebase_storage: ^10.1.0
   cloud_firestore: ^3.1.0
   flutter_svg: ^0.23.0+1
   cached_network_image: ^3.1.0+1
+  # downgrade does not solve issue yet of picking HEIC images
+  # image_picker: ^0.7.4
   image_picker: ^0.8.4+4
+  path_provider: ^2.0.7 # used to compress image
+  image: ^3.0.8 # used to conmpress image
+  uuid: ^3.0.5 # used to conmpress image
 
 
 dev_dependencies:

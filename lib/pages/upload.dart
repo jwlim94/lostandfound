@@ -1,42 +1,70 @@
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/models/user.dart';
+import 'package:flutter_application_1/widgets/progress.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:image/image.dart' as im;
+import 'package:uuid/uuid.dart';
+
+import 'home.dart';
 
 class Upload extends StatefulWidget {
   final User? currentUser;
 
-  Upload({required this.currentUser});
+  Upload({this.currentUser});
 
   @override
   _UploadState createState() => _UploadState();
 }
 
 class _UploadState extends State<Upload> {
+  // (image_picker: ^0.8.4+4 version) and (image_picker: ^0.7.4 version)
+  // this is File because Widget image: FileImage() only accepts File
   File? file;
+  bool isUploading = false;
+  String postId = Uuid().v4();
+
+  final ImagePicker _picker = ImagePicker();
 
   // does not work in iso emulator?
   handleTakePhoto() async {
     Navigator.pop(context);
-    final file = await ImagePicker().pickImage(
-      source: ImageSource.camera,
-      maxHeight: 675,
-      maxWidth: 960,
-    );
-    setState(() {
-      this.file = File(file!.path);
-    });
+    // final file = await ImagePicker().pickImage(
+    //   source: ImageSource.camera,
+    //   maxHeight: 675,
+    //   maxWidth: 960,
+    // );
+    // setState(() {
+    //   this.file = File(file!.path);
+    // });
   }
 
+  // The first default image does not work because there is a known issue
+  // to pick HEIC images (the first flower image is HEIC format) with PHPicker
+  // implementation.
+  // It seems like Apple still has not solved this issue
   handleChooseFromGallery() async {
     Navigator.pop(context);
-    final file = await ImagePicker().pickImage(source: ImageSource.gallery);
+
+    // (image_picker: ^0.8.4+4 version)
+    final XFile? file = await _picker.pickImage(source: ImageSource.gallery);
+    // (image_picker: ^0.7.4 version)
+    // final pickedFile = await _picker.getImage(source: ImageSource.gallery);
     setState(() {
+      // this is to convert XFile to File (image_picker: ^0.8.4+4 version)
       this.file = File(file!.path);
+      // (image_picker: ^0.7.4 version)
+      // file = File(pickedFile!.path);
     });
+    // final file = await ImagePicker().pickImage(source: ImageSource.gallery);
+    // setState(() {
+    //   this.file = File(file!.path);
+    // });
   }
 
   selectImage(parentContext) {
@@ -103,6 +131,41 @@ class _UploadState extends State<Upload> {
     });
   }
 
+  compressImage() async {
+    final tempDir = await getTemporaryDirectory();
+    final path = tempDir.path;
+    im.Image? imageFile = im.decodeImage(file!.readAsBytesSync());
+    // .. syntax is used to chain, quality is for quality of the image(0 - 100)
+    final compressedImageFile = File('$path/img_$postId.jpg')
+      ..writeAsBytesSync(im.encodeJpg(imageFile!, quality: 85));
+    setState(() {
+      file = compressedImageFile;
+      // print(file);
+    });
+  }
+
+  Future<String?> uploadImage(imageFile) async {
+    // 'StorageUploadTask' deprecated to 'UploadTask'
+    UploadTask uploadTask =
+        storageRef.child('post_$postId.jpg').putFile(imageFile);
+    final res = await uploadTask;
+    return res.ref.getDownloadURL();
+    // uploadTask.then((res) {
+    //   return res.ref.getDownloadURL();
+    // }).catchError((onError) {
+    //   print(onError);
+    //   return throw Exception('Exception');
+    // });
+  }
+
+  handleSubmit() async {
+    setState(() {
+      isUploading = true;
+    });
+    await compressImage();
+    String? mediaUrl = await uploadImage(file);
+  }
+
   buildUploadForm() {
     return Scaffold(
       appBar: AppBar(
@@ -120,7 +183,7 @@ class _UploadState extends State<Upload> {
         ),
         actions: [
           TextButton(
-            onPressed: () => print('post clicked'),
+            onPressed: isUploading ? null : () => handleSubmit(),
             child: const Text(
               'Post',
               style: TextStyle(
@@ -134,6 +197,7 @@ class _UploadState extends State<Upload> {
       ),
       body: ListView(
         children: <Widget>[
+          isUploading ? linearProgress() : const Text(''),
           Container(
             height: 220.0,
             width: MediaQuery.of(context).size.width * 0.8,
@@ -144,6 +208,7 @@ class _UploadState extends State<Upload> {
                   decoration: BoxDecoration(
                     image: DecorationImage(
                       fit: BoxFit.cover,
+                      // (image_picker: ^0.8.4+4 version) and (image_picker: ^0.7.4 version)
                       image: FileImage(file!),
                     ),
                   ),
