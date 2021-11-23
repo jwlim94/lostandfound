@@ -149,7 +149,7 @@ class _HomeState extends State<Home> {
           const ActivityFeed(),
           Upload(currentUser: currentUser),
           const Search(),
-          const Profile(),
+          Profile(profileId: currentUser?.id),
         ],
         controller: pageController,
         onPageChanged: onPageChanged,
