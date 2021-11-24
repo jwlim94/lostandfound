@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_1/models/user.dart';
 import 'package:flutter_application_1/pages/home.dart';
 import 'package:flutter_application_1/widgets/header.dart';
+import 'package:flutter_application_1/widgets/post.dart';
 import 'package:flutter_application_1/widgets/progress.dart';
 
 import 'edit_profile.dart';
@@ -19,6 +20,32 @@ class Profile extends StatefulWidget {
 
 class _ProfileState extends State<Profile> {
   final String? currentUserId = currentUser?.id;
+  bool isLoding = false;
+  int postCount = 0;
+  List<Post> posts = [];
+
+  @override
+  void initState() {
+    super.initState();
+    getProfilePosts();
+  }
+
+  // fetching posts from firestore
+  getProfilePosts() async {
+    setState(() {
+      isLoding = true;
+    });
+    QuerySnapshot snapshot = await postRef
+        .doc(widget.profileId)
+        .collection('userPosts')
+        .orderBy('timestamp', descending: true)
+        .get();
+    setState(() {
+      isLoding = false;
+      postCount = snapshot.docs.length;
+      posts = snapshot.docs.map((doc) => Post.fromDocument(doc)).toList();
+    });
+  }
 
   Column buildCountColumn(String label, int count) {
     return Column(
@@ -125,7 +152,7 @@ class _ProfileState extends State<Profile> {
                           mainAxisSize: MainAxisSize.max,
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: <Widget>[
-                            buildCountColumn('posts', 0),
+                            buildCountColumn('posts', postCount),
                             buildCountColumn('followers', 0),
                             buildCountColumn('following', 0),
                           ],
@@ -175,12 +202,28 @@ class _ProfileState extends State<Profile> {
     );
   }
 
+  // display posts after fetching them
+  buildProfilePost() {
+    if (isLoding) {
+      return circularProgress();
+    }
+    return Column(
+      children: posts,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: header(context, titleText: 'Profile'),
       body: ListView(
-        children: <Widget>[buildProfileHeader()],
+        children: <Widget>[
+          buildProfileHeader(),
+          Divider(
+            height: 0.0,
+          ),
+          buildProfilePost(),
+        ],
       ),
     );
   }
