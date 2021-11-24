@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/models/user.dart';
 import 'package:flutter_application_1/pages/home.dart';
+import 'package:flutter_application_1/widgets/custom_image.dart';
 import 'package:flutter_application_1/widgets/progress.dart';
 
 // create Post Model here (Model in a widget)
@@ -131,8 +132,11 @@ class _PostState extends State<Post> {
       child: Stack(
         alignment: Alignment.center,
         children: <Widget>[
-          // does this handle multiple images?
-          Image.network(mediaUrl),
+          // this is from 'custom_image.dart' to show an image
+          // in better user experience way in profile
+          cachedNetworkImage(
+            mediaUrl,
+          ),
         ],
       ),
     );

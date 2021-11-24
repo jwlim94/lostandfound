@@ -5,7 +5,9 @@ import 'package:flutter_application_1/models/user.dart';
 import 'package:flutter_application_1/pages/home.dart';
 import 'package:flutter_application_1/widgets/header.dart';
 import 'package:flutter_application_1/widgets/post.dart';
+import 'package:flutter_application_1/widgets/post_tile.dart';
 import 'package:flutter_application_1/widgets/progress.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import 'edit_profile.dart';
 
@@ -20,6 +22,7 @@ class Profile extends StatefulWidget {
 
 class _ProfileState extends State<Profile> {
   final String? currentUserId = currentUser?.id;
+  String postOrientation = 'grid';
   bool isLoding = false;
   int postCount = 0;
   List<Post> posts = [];
@@ -30,7 +33,7 @@ class _ProfileState extends State<Profile> {
     getProfilePosts();
   }
 
-  // fetching posts from firestore
+  // fetching posts from 'post.dart'
   getProfilePosts() async {
     setState(() {
       isLoding = true;
@@ -203,12 +206,78 @@ class _ProfileState extends State<Profile> {
   }
 
   // display posts after fetching them
-  buildProfilePost() {
+  buildProfilePosts() {
     if (isLoding) {
       return circularProgress();
+    } else if (posts.isEmpty) {
+      return Container(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            SvgPicture.asset('assets/images/no_content.svg', height: 260.0),
+            Padding(
+              padding: EdgeInsets.only(top: 20.0),
+              child: Text(
+                'No Posts',
+                style: TextStyle(
+                  color: Colors.redAccent,
+                  fontSize: 40.0,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    } else if (postOrientation == 'grid') {
+      List<GridTile> gridTiles = [];
+      posts.forEach((post) {
+        gridTiles.add(GridTile(
+          child: PostTile(post),
+        ));
+      });
+      return GridView.count(
+        crossAxisCount: 3,
+        childAspectRatio: 1.0,
+        mainAxisSpacing: 1.5,
+        crossAxisSpacing: 1.5,
+        shrinkWrap: true,
+        physics: NeverScrollableScrollPhysics(),
+        children: gridTiles,
+      );
+    } else if (postOrientation == 'list') {
+      return Column(
+        children: posts,
+      );
     }
-    return Column(
-      children: posts,
+  }
+
+  setPostOrientation(String orientation) {
+    setState(() {
+      this.postOrientation = orientation;
+    });
+  }
+
+  buildTogglePostOrientation() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: <Widget>[
+        IconButton(
+          // () => syntax works, without it does not work... why?
+          onPressed: () => setPostOrientation('grid'),
+          icon: Icon(Icons.grid_on),
+          color: postOrientation == 'grid'
+              ? Theme.of(context).colorScheme.primary
+              : Colors.grey,
+        ),
+        IconButton(
+          onPressed: () => setPostOrientation('list'),
+          icon: Icon(Icons.list),
+          color: postOrientation == 'list'
+              ? Theme.of(context).colorScheme.primary
+              : Colors.grey,
+        ),
+      ],
     );
   }
 
@@ -219,10 +288,12 @@ class _ProfileState extends State<Profile> {
       body: ListView(
         children: <Widget>[
           buildProfileHeader(),
+          Divider(),
+          buildTogglePostOrientation(),
           Divider(
             height: 0.0,
           ),
-          buildProfilePost(),
+          buildProfilePosts(),
         ],
       ),
     );
