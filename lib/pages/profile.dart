@@ -6,6 +6,8 @@ import 'package:flutter_application_1/pages/home.dart';
 import 'package:flutter_application_1/widgets/header.dart';
 import 'package:flutter_application_1/widgets/progress.dart';
 
+import 'edit_profile.dart';
+
 class Profile extends StatefulWidget {
   final String? profileId;
 
@@ -16,11 +18,7 @@ class Profile extends StatefulWidget {
 }
 
 class _ProfileState extends State<Profile> {
-  buildProfileButton() {
-    // viewing your own profile - should show edit profile button
-
-    return Text('Profile Button');
-  }
+  final String? currentUserId = currentUser?.id;
 
   Column buildCountColumn(String label, int count) {
     return Column(
@@ -44,6 +42,58 @@ class _ProfileState extends State<Profile> {
         ),
       ],
     );
+  }
+
+  editProfile() {
+    // .then() and setState was added to automatically get the updated data
+    // when we got back from Edit Profile page
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (BuildContext context) =>
+                EditProfile(currentUserId: currentUserId))).then((value) {
+      setState(() {});
+    });
+  }
+
+  // VoidCallback is just shorthand for Void Function()
+  Container buildButton({String? text, VoidCallback? function}) {
+    return Container(
+      padding: EdgeInsets.only(top: 2.0),
+      child: TextButton(
+        onPressed: function,
+        child: Container(
+          width: 250.0,
+          height: 27.0,
+          child: Text(
+            text!,
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: Colors.blue,
+            border: Border.all(
+              color: Colors.blue,
+            ),
+            borderRadius: BorderRadius.circular(5.0),
+          ),
+        ),
+      ),
+    );
+  }
+
+  buildProfileButton() {
+    // viewing your own profile - should show edit profile button
+    bool isProfileOwner = currentUserId == widget.profileId;
+    if (isProfileOwner) {
+      return buildButton(
+        text: 'Edit Profile',
+        function: editProfile,
+      );
+    }
   }
 
   buildProfileHeader() {
