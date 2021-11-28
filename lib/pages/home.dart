@@ -138,14 +138,14 @@ class _HomeState extends State<Home> {
     return Scaffold(
       body: PageView(
         children: <Widget>[
-          // Timeline(),
-          ElevatedButton(
-            onPressed: logout,
-            child: const Text('Logout'),
-            style: ElevatedButton.styleFrom(
-              primary: Colors.black,
-            ),
-          ),
+          Timeline(currentUser: currentUser),
+          // ElevatedButton(
+          //   onPressed: logout,
+          //   child: const Text('Logout'),
+          //   style: ElevatedButton.styleFrom(
+          //     primary: Colors.black,
+          //   ),
+          // ),
           const ActivityFeed(),
           Upload(currentUser: currentUser),
           const Search(),

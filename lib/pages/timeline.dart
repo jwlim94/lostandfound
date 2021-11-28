@@ -1,19 +1,28 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/models/user.dart';
+import 'package:flutter_application_1/pages/home.dart';
 import 'package:flutter_application_1/widgets/header.dart';
+import 'package:flutter_application_1/widgets/post.dart';
 import 'package:flutter_application_1/widgets/progress.dart';
 
 // getting users collection from Firebase
 final userRef = FirebaseFirestore.instance.collection('users');
 
 class Timeline extends StatefulWidget {
-  const Timeline({Key? key}) : super(key: key);
+  final User? currentUser;
+
+  const Timeline({required this.currentUser});
+  
+  // const Timeline({Key? key}) : super(key: key);
 
   @override
   _TimelineState createState() => _TimelineState();
 }
 
 class _TimelineState extends State<Timeline> {
+  bool isPostRetrieved = false;
+  late List<Post> posts;
   // this is used when not using StreamBuilder; only works for Stateful
   // List<dynamic> users = [];
 
@@ -25,8 +34,22 @@ class _TimelineState extends State<Timeline> {
     // createUser();
     // deleteUser();
     super.initState();
+    getTimeline();
   }
 
+  getTimeline() async {
+    QuerySnapshot snapshot = await postRef 
+      .firestore
+      .collection('posts')
+      .orderBy('timestamp', descending: true)
+      .get();
+    
+    List<Post> posts = snapshot.docs.map((doc) => Post.fromDocument(doc)).toList();
+    setState(() {
+      isPostRetrieved = true;
+      this.posts = posts;
+    });
+  }
   // get 'users' collections
   // this is used when not using StreamBuilder
   getUsers() async {
@@ -92,10 +115,24 @@ class _TimelineState extends State<Timeline> {
     }
   }
 
+  buildTimeline() {
+    if (isPostRetrieved == false) {
+      return circularProgress();
+    } else if (posts.isEmpty) {
+      return Text("No reported items");
+    } else {
+      return ListView(children: posts);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: header(context, isAppTitle: true),
+      body: RefreshIndicator(
+        onRefresh: () => getTimeline(),
+        child: buildTimeline()
+      )
       // StreamBuilder makes it possible to put logic only in build method
       // both for fetching and showing data
       // StreamBuilder vs FutureBuilder

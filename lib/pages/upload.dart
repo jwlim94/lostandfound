@@ -61,9 +61,9 @@ class _UploadState extends State<Upload> {
     // final pickedFile = await _picker.getImage(source: ImageSource.gallery);
     setState(() {
       // this is to convert XFile to File (image_picker: ^0.8.4+4 version)
-      this.file = File(file!.path);
+      // this.file = File('/Users/jaeyoungpark/Desktop/sqs.png');
       // (image_picker: ^0.7.4 version)
-      // file = File(pickedFile!.path);
+      this.file = File(file!.path);
     });
     // final file = await ImagePicker().pickImage(source: ImageSource.gallery);
     // setState(() {
@@ -165,10 +165,8 @@ class _UploadState extends State<Upload> {
   createPostInFirestore(
       {String? mediaUrl, String? location, String? description}) {
     postRef
-        .doc(widget.currentUser!.id)
-        .collection('userPosts')
-        .doc(postId)
-        .set({
+      .doc(postId)
+      .set({
       'postId': postId,
       'ownerId': widget.currentUser!.id,
       'username': widget.currentUser!.username,
