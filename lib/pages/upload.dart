@@ -1,10 +1,17 @@
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/models/user.dart';
+import 'package:flutter_application_1/widgets/progress.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:image/image.dart' as Im;
+import 'package:uuid/uuid.dart';
+
+import 'home.dart';
 
 class Upload extends StatefulWidget {
   final User? currentUser;
@@ -17,6 +24,10 @@ class Upload extends StatefulWidget {
 
 class _UploadState extends State<Upload> {
   File? file;
+  bool isUploading = false;
+  String postId = Uuid().v4();
+  TextEditingController locationController = TextEditingController();
+  TextEditingController captionController = TextEditingController();
 
   // does not work in iso emulator?
   handleTakePhoto() async {
@@ -33,9 +44,9 @@ class _UploadState extends State<Upload> {
 
   handleChooseFromGallery() async {
     Navigator.pop(context);
-    final file = await ImagePicker().pickImage(source: ImageSource.gallery);
+    // final file = await ImagePicker().pickImage(source: ImageSource.gallery);
     setState(() {
-      this.file = File(file!.path);
+      this.file = File("/Users/jaeyoungpark/Desktop/sqs.png");
     });
   }
 
@@ -103,6 +114,61 @@ class _UploadState extends State<Upload> {
     });
   }
 
+  compressImage() async {
+    final tempDir = await getTemporaryDirectory();
+    final path = tempDir.path;
+    Im.Image? imageFile = Im.decodeImage(file!.readAsBytesSync());
+    final compressedImageFile = File('$path/img_$postId.jpg')
+      ..writeAsBytesSync(Im.encodeJpg(imageFile!, quality: 85));
+    setState(() {
+      file = compressedImageFile;
+    });
+  }
+
+  Future<String> uploadImage(imageFile) async {
+    UploadTask uploadTask =
+        storageRef.child("post_$postId.jpg").putFile(imageFile);
+    var imageUrl = await (await uploadTask).ref.getDownloadURL();
+    return imageUrl;
+  }
+
+  handleSubmit() async {
+    setState(() {
+      isUploading = true;
+    });
+    await compressImage();
+    String mediaUrl = await uploadImage(file);
+    createPostInFireStore(
+        mediaUrl: mediaUrl,
+        location: locationController.text,
+        description: captionController.text);
+  }
+
+  createPostInFireStore(
+      {required String mediaUrl,
+      required String location,
+      required String description}) {
+    postsRef
+        .doc(widget.currentUser!.id)
+        .collection("userPosts")
+        .doc(postId)
+        .set({
+      "postId": postId,
+      "ownerId": widget.currentUser!.id,
+      "username": widget.currentUser!.username,
+      "mediaUrl": mediaUrl,
+      "description": description,
+      "location": location,
+      "timestamp": timestamp,
+    });
+    captionController.clear();
+    locationController.clear();
+    setState(() {
+      file = null;
+      isUploading = false;
+    });
+  }
+
   buildUploadForm() {
     return Scaffold(
       appBar: AppBar(
@@ -120,7 +186,7 @@ class _UploadState extends State<Upload> {
         ),
         actions: [
           TextButton(
-            onPressed: () => print('post clicked'),
+            onPressed: () => handleSubmit(),
             child: const Text(
               'Post',
               style: TextStyle(
@@ -134,6 +200,7 @@ class _UploadState extends State<Upload> {
       ),
       body: ListView(
         children: <Widget>[
+          isUploading ? linearProgress() : Text(""),
           Container(
             height: 220.0,
             width: MediaQuery.of(context).size.width * 0.8,
@@ -161,11 +228,12 @@ class _UploadState extends State<Upload> {
               ),
               title: Container(
                   width: 250.0,
-                  child: const TextField(
+                  child: TextField(
+                      controller: captionController,
                       decoration: InputDecoration(
-                    hintText: 'Write a caption...',
-                    border: InputBorder.none,
-                  )))),
+                        hintText: 'Write a caption...',
+                        border: InputBorder.none,
+                      )))),
           const Divider(),
           ListTile(
               leading: const Icon(
@@ -175,7 +243,8 @@ class _UploadState extends State<Upload> {
               ),
               title: Container(
                   width: 250.0,
-                  child: const TextField(
+                  child: TextField(
+                    controller: locationController,
                     decoration: InputDecoration(
                       hintText: 'Where was this photo taken?',
                       border: InputBorder.none,

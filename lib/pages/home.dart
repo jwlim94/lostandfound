@@ -9,11 +9,15 @@ import 'package:flutter_application_1/pages/search.dart';
 import 'package:flutter_application_1/pages/timeline.dart';
 import 'package:flutter_application_1/pages/upload.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 final GoogleSignIn googleSignIn = GoogleSignIn();
+
+final Reference storageRef = FirebaseStorage.instance.ref();
 // google signin for android
 final authHeaders = googleSignIn.currentUser!.authHeaders;
 final userRef = FirebaseFirestore.instance.collection('users');
+final postsRef = FirebaseFirestore.instance.collection('posts');
 final DateTime timestamp = DateTime.now();
 User? currentUser;
 
@@ -91,7 +95,6 @@ class _HomeState extends State<Home> {
       // currentUser is a logged in user
       // now currentUser can be used by passing through param to each pages where needed
       currentUser = User.fromDocument(doc);
-      print(currentUser);
       print(currentUser!.username);
     }
   }
