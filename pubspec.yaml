@@ -44,6 +44,8 @@ dependencies:
   image: ^3.0.8
   uuid: ^3.0.5
   firebase_storage: ^10.1.0
+  geolocator: ^7.7.1
+  geocoding: ^2.0.1
 
 
 dev_dependencies:
