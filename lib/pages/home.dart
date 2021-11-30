@@ -11,6 +11,7 @@ import 'package:flutter_application_1/pages/timeline.dart';
 import 'package:flutter_application_1/pages/upload.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+// global variables. This is available anywhere.
 final GoogleSignIn googleSignIn = GoogleSignIn();
 // google signin for android
 final authHeaders = googleSignIn.currentUser!.authHeaders;

@@ -71,6 +71,7 @@ class Post extends StatefulWidget {
 }
 
 class _PostState extends State<Post> {
+  final currentUserId = currentUser?.id;
   final String postId;
   final String ownerId;
   final String username;
@@ -79,6 +80,7 @@ class _PostState extends State<Post> {
   final String mediaUrl;
   Map likes;
   int likeCount;
+  late bool isLiked;
 
   _PostState({
     required this.postId,
@@ -127,7 +129,7 @@ class _PostState extends State<Post> {
   buildPostImage() {
     // to make the feature to double tap to like the post
     return GestureDetector(
-      onDoubleTap: () => print('liking post'),
+      onDoubleTap: handleLikePost,
       // what is Stack() widget? => Stack them up!
       child: Stack(
         alignment: Alignment.center,
@@ -142,6 +144,37 @@ class _PostState extends State<Post> {
     );
   }
 
+  handleLikePost() {
+    bool _isLiked = (likes[currentUserId] == true);
+    if (_isLiked) {
+      // update firebase
+      postRef
+          .doc(ownerId)
+          .collection('userPosts')
+          .doc(postId)
+          .update({'likes.$currentUserId': false});
+      // update local variables
+      setState(() {
+        likeCount -= 1;
+        isLiked = false;
+        likes[currentUserId] = false;
+      });
+    } else if (!_isLiked) {
+      // update firebase
+      postRef
+          .doc(ownerId)
+          .collection('userPosts')
+          .doc(postId)
+          .update({'likes.$currentUserId': true});
+      // update local variables
+      setState(() {
+        likeCount += 1;
+        isLiked = true;
+        likes[currentUserId] = true;
+      });
+    }
+  }
+
   buildPostFooter() {
     return Column(
       children: <Widget>[
@@ -152,9 +185,9 @@ class _PostState extends State<Post> {
               padding: EdgeInsets.only(top: 40.0, left: 20.0),
             ),
             GestureDetector(
-              onTap: () => print('liking post'),
+              onTap: handleLikePost,
               child: Icon(
-                Icons.favorite_border,
+                isLiked ? Icons.favorite : Icons.favorite_border,
                 size: 28.0,
                 color: Colors.pink,
               ),
@@ -210,6 +243,9 @@ class _PostState extends State<Post> {
 
   @override
   Widget build(BuildContext context) {
+    // initialize when the display was build
+    isLiked = (likes[currentUserId] == true);
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
