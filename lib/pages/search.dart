@@ -109,7 +109,7 @@ class _SearchState extends State<Search> {
           return circularProgress();
         }
         // the reason why UserResult is made is to store it in the List
-        // searchResult and user is just the same but User(Model) cannot be tored as a List
+        // searchResult and user is just the same but User(Model) cannot be stored as a List
         List<UserResult> searchResults = [];
         snapshot.data!.docs.forEach((doc) {
           // This step is needed to deserialize the documents

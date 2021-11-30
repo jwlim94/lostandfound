@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/models/user.dart';
@@ -10,10 +11,14 @@ import 'package:flutter_application_1/pages/timeline.dart';
 import 'package:flutter_application_1/pages/upload.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+// global variables. This is available anywhere.
 final GoogleSignIn googleSignIn = GoogleSignIn();
 // google signin for android
 final authHeaders = googleSignIn.currentUser!.authHeaders;
+// 'StorageReference' deprecated to 'Reference'
+final Reference storageRef = FirebaseStorage.instance.ref();
 final userRef = FirebaseFirestore.instance.collection('users');
+final postRef = FirebaseFirestore.instance.collection('posts');
 final DateTime timestamp = DateTime.now();
 User? currentUser;
 
@@ -145,7 +150,7 @@ class _HomeState extends State<Home> {
           const ActivityFeed(),
           Upload(currentUser: currentUser),
           const Search(),
-          const Profile(),
+          Profile(profileId: currentUser?.id),
         ],
         controller: pageController,
         onPageChanged: onPageChanged,
