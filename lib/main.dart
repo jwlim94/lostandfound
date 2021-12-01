@@ -61,11 +61,11 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Lost & Found',
       theme: ThemeData().copyWith(
         colorScheme: ThemeData()
             .colorScheme
-            .copyWith(primary: Colors.purple, secondary: Colors.teal),
+            .copyWith(primary: Colors.blue, secondary: Colors.teal),
       ),
       home: const Home(),
     );

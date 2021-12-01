@@ -139,14 +139,14 @@ class _HomeState extends State<Home> {
     return Scaffold(
       body: PageView(
         children: <Widget>[
-          // Timeline(),
-          ElevatedButton(
-            onPressed: logout,
-            child: const Text('Logout'),
-            style: ElevatedButton.styleFrom(
-              primary: Colors.black,
-            ),
-          ),
+          const Timeline(),
+          // ElevatedButton(
+          //   onPressed: logout,
+          //   child: const Text('Logout'),
+          //   style: ElevatedButton.styleFrom(
+          //     primary: Colors.black,
+          //   ),
+          // ),
           const ActivityFeed(),
           Upload(currentUser: currentUser),
           const Search(),
@@ -159,7 +159,7 @@ class _HomeState extends State<Home> {
       bottomNavigationBar: CupertinoTabBar(
           currentIndex: pageIndex,
           onTap: onTap,
-          activeColor: Theme.of(context).colorScheme.secondary,
+          activeColor: Colors.blue,
           items: const [
             BottomNavigationBarItem(
               icon: Icon(Icons.whatshot),
@@ -191,15 +191,16 @@ class _HomeState extends State<Home> {
   Scaffold buildUnAuthScreen() {
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topRight,
-            end: Alignment.bottomLeft,
-            colors: [
-              Theme.of(context).colorScheme.primary.withOpacity(0.3),
-              Theme.of(context).colorScheme.secondary,
-            ],
-          ),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          // gradient: LinearGradient(
+          //   begin: Alignment.topRight,
+          //   end: Alignment.bottomLeft,
+          //   colors: [
+          //     Theme.of(context).colorScheme.primary.withOpacity(0.3),
+          //     Theme.of(context).colorScheme.secondary,
+          //   ],
+          // ),
         ),
         alignment: Alignment.center,
         child: Column(
@@ -207,26 +208,30 @@ class _HomeState extends State<Home> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
             const Text(
-              'Flutter Share',
+              'Lost & Found',
               style: TextStyle(
                 fontFamily: 'Signatra',
                 fontSize: 90.0,
-                color: Colors.white,
+                color: Colors.blue,
               ),
             ),
-            GestureDetector(
-              onTap: login,
-              child: Container(
-                width: 260.0,
-                height: 60.0,
-                decoration: const BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage('assets/images/google_signin_button.png'),
-                    fit: BoxFit.cover,
+            Padding(
+              padding: const EdgeInsets.only(top: 40.0),
+              child: GestureDetector(
+                onTap: login,
+                child: Container(
+                  width: 260.0,
+                  height: 60.0,
+                  decoration: const BoxDecoration(
+                    image: DecorationImage(
+                      image:
+                          AssetImage('assets/images/google_signin_button.png'),
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
               ),
-            )
+            ),
           ],
         ),
       ),

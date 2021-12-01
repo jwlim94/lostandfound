@@ -97,7 +97,7 @@ class _UploadState extends State<Upload> {
 
   Container buildSplashScreen() {
     return Container(
-      color: Theme.of(context).colorScheme.secondary.withOpacity(0.6),
+      color: Colors.white,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
@@ -106,8 +106,7 @@ class _UploadState extends State<Upload> {
             padding: const EdgeInsets.only(top: 20.0),
             child: ElevatedButton(
               style: ButtonStyle(
-                backgroundColor:
-                    MaterialStateProperty.all<Color>(Colors.deepOrange),
+                backgroundColor: MaterialStateProperty.all<Color>(Colors.blue),
                 shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                   RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8.0),
@@ -115,7 +114,7 @@ class _UploadState extends State<Upload> {
                 ),
               ),
               child: const Text(
-                'Upload Image',
+                'Upload Item',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 22.0,

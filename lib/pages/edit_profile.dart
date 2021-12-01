@@ -126,7 +126,7 @@ class _EditProfileState extends State<EditProfile> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
-        title: Text(
+        title: const Text(
           'Edit Profile',
           style: TextStyle(
             color: Colors.black,
@@ -135,10 +135,10 @@ class _EditProfileState extends State<EditProfile> {
         actions: <Widget>[
           IconButton(
             onPressed: () => Navigator.pop(context),
-            icon: Icon(
+            icon: const Icon(
               Icons.done,
               size: 30.0,
-              color: Colors.green,
+              color: Colors.blue,
             ),
           ),
         ],
@@ -151,7 +151,7 @@ class _EditProfileState extends State<EditProfile> {
                   child: Column(
                     children: <Widget>[
                       Padding(
-                        padding: EdgeInsets.only(top: 16.0, bottom: 8.0),
+                        padding: const EdgeInsets.only(top: 16.0, bottom: 8.0),
                         child: CircleAvatar(
                           radius: 50.0,
                           backgroundImage:
@@ -160,7 +160,7 @@ class _EditProfileState extends State<EditProfile> {
                         ),
                       ),
                       Padding(
-                        padding: EdgeInsets.all(16.0),
+                        padding: const EdgeInsets.all(16.0),
                         child: Column(
                           children: <Widget>[
                             buildDisplayNameField(),
@@ -171,27 +171,30 @@ class _EditProfileState extends State<EditProfile> {
                       ElevatedButton(
                         onPressed: updateProfileData,
                         style: ElevatedButton.styleFrom(
-                          primary: Colors.white,
+                          primary: Colors.blue,
                         ),
-                        child: Text(
+                        child: const Text(
                           'Update Profile',
                           style: TextStyle(
-                            color: Theme.of(context).colorScheme.primary,
+                            color: Colors.white,
                             fontSize: 20.0,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
                       Padding(
-                        padding: EdgeInsets.all(16.0),
-                        child: TextButton.icon(
+                        padding: const EdgeInsets.all(10.0),
+                        child: ElevatedButton(
                           onPressed: logout,
-                          icon: Icon(Icons.cancel, color: Colors.red),
-                          label: Text(
+                          style: ElevatedButton.styleFrom(
+                            primary: Colors.red,
+                          ),
+                          child: const Text(
                             'Logout',
                             style: TextStyle(
-                              color: Colors.red,
+                              color: Colors.white,
                               fontSize: 20.0,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),

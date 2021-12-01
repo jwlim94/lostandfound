@@ -40,22 +40,22 @@ class _SearchState extends State<Search> {
       backgroundColor: Colors.white,
       title: TextFormField(
         controller: searchController,
-        cursorColor: Colors.teal,
+        cursorColor: Colors.black,
         decoration: InputDecoration(
-          hintText: 'Search for a user...',
+          hintText: 'Search for an item...',
           filled: true,
           // bottom line color when focused
           focusedBorder: const UnderlineInputBorder(
-            borderSide: BorderSide(color: Colors.teal),
+            borderSide: BorderSide(color: Colors.black),
           ),
           prefixIcon: const Icon(
-            Icons.account_box,
+            Icons.search,
             size: 28.0,
-            color: Colors.teal,
+            color: Colors.black,
           ),
           suffixIcon: IconButton(
             icon: const Icon(Icons.clear),
-            color: Colors.teal,
+            color: Colors.black,
             onPressed: clearSearch,
           ),
         ),
@@ -70,7 +70,7 @@ class _SearchState extends State<Search> {
     // it is good to use MediaQuery object to get the orientation
     final Orientation orientation = MediaQuery.of(context).orientation;
     return Container(
-      color: Theme.of(context).colorScheme.secondary.withOpacity(0.6),
+      color: Colors.white,
       child: Center(
         // Listview prevents from overflow because it resizes itself
         // when keyboard is open as user try to search for users
@@ -79,17 +79,17 @@ class _SearchState extends State<Search> {
           children: <Widget>[
             // in order to use SvgPicture, need to implement dependency
             SvgPicture.asset(
-              'assets/images/search.svg',
+              'assets/images/search-item.svg',
               height: orientation == Orientation.portrait ? 300.0 : 200.0,
             ),
             const Text(
-              'Find Users',
+              'Find Items',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Colors.black,
+                color: Colors.black87,
                 fontStyle: FontStyle.italic,
-                fontWeight: FontWeight.w600,
-                fontSize: 60.0,
+                fontWeight: FontWeight.w500,
+                fontSize: 50.0,
               ),
             ),
           ],
@@ -145,7 +145,8 @@ class UserResult extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Theme.of(context).colorScheme.secondary.withOpacity(0.6),
+      color: Colors.white,
+      margin: const EdgeInsets.only(left: 15.0, right: 15.0),
       child: Column(
         children: <Widget>[
           GestureDetector(

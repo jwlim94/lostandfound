@@ -156,8 +156,7 @@ class _ProfileState extends State<Profile> {
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: <Widget>[
                             buildCountColumn('posts', postCount),
-                            buildCountColumn('followers', 0),
-                            buildCountColumn('following', 0),
+                            buildCountColumn('claims', 0),
                           ],
                         ),
                         // why Row() here? it is just a button?
@@ -266,16 +265,12 @@ class _ProfileState extends State<Profile> {
           // () => syntax works, without it does not work... why?
           onPressed: () => setPostOrientation('grid'),
           icon: Icon(Icons.grid_on),
-          color: postOrientation == 'grid'
-              ? Theme.of(context).colorScheme.primary
-              : Colors.grey,
+          color: postOrientation == 'grid' ? Colors.blue : Colors.grey,
         ),
         IconButton(
           onPressed: () => setPostOrientation('list'),
           icon: Icon(Icons.list),
-          color: postOrientation == 'list'
-              ? Theme.of(context).colorScheme.primary
-              : Colors.grey,
+          color: postOrientation == 'list' ? Colors.blue : Colors.grey,
         ),
       ],
     );

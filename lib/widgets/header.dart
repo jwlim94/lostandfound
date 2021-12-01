@@ -9,14 +9,14 @@ AppBar header(
   return AppBar(
     automaticallyImplyLeading: removeBackButton ? false : true,
     title: Text(
-      isAppTitle ? "FlutterShare" : titleText,
+      isAppTitle ? "Lost & Found" : titleText,
       style: TextStyle(
-        color: Colors.white,
+        color: Colors.black,
         fontFamily: isAppTitle ? 'Signatra' : '',
         fontSize: isAppTitle ? 50.0 : 22.0,
       ),
     ),
     centerTitle: true,
-    backgroundColor: Theme.of(context).colorScheme.secondary,
+    backgroundColor: Colors.white,
   );
 }
