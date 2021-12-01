@@ -38,19 +38,22 @@ class _HomeState extends State<Home> {
   void initState() {
     super.initState();
     pageController = PageController();
+
     // Detects when user signed in
     googleSignIn.onCurrentUserChanged.listen((account) {
       handleSignIn(account);
     }, onError: (err) {
       print('Error signing in: $err');
     });
+
+    // FIXME: this makes the screen show twice. How can we prevent that?
     // Reauthenticate user when app is opened
     // this method returns a Promise
-    googleSignIn.signInSilently(suppressErrors: false).then((account) {
-      handleSignIn(account);
-    }).catchError((err) {
-      print('Error signing in: $err');
-    });
+    // googleSignIn.signInSilently(suppressErrors: false).then((account) {
+    //   handleSignIn(account);
+    // }).catchError((err) {
+    //   print('Error signing in: $err');
+    // });
   }
 
   handleSignIn(GoogleSignInAccount? account) {
