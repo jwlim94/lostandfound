@@ -11,14 +11,28 @@ class CreateAccount extends StatefulWidget {
   _CreateAccountState createState() => _CreateAccountState();
 }
 
+class Info {
+  late String username;
+  late String phoneNumber;
+
+  setUserName(String username) {
+    this.username = username;
+  }
+
+  setPhoneNumber(String phoneNumber) {
+    this.phoneNumber = phoneNumber;
+  }
+}
+
 class _CreateAccountState extends State<CreateAccount> {
   // GlobalKey is unique accross the entire app. it uniquely identify elements
   final _formkey = GlobalKey<FormState>();
-  String username = 'deafult';
+  Info info = Info();
+  String username = 'default';
+  String phoneNumber = '+0 000-000-0000';
 
   // Phone verification
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final _scaffoldKey = GlobalKey<ScaffoldState>();
   final TextEditingController _phoneNumberController = TextEditingController();
   final TextEditingController _smsController = TextEditingController();
   late String _verificationId;
@@ -28,10 +42,19 @@ class _CreateAccountState extends State<CreateAccount> {
 
     // validate function will go through validate one more time in TextFormField
     if (form!.validate()) {
-      // use Global key to save state
-      // this happens when submit button has been pushed so
-      // username by that time will be sent back to the previous page
+      /*
+      use Global key to save state
+      this happens when submit button has been pushed so
+      username by that time will be sent back to the previous page
+      */
       form.save();
+
+      /*
+      username was used by GlobalKey
+      phoneNumber was used by TextEditingController
+      */
+      info.setUserName(username);
+      info.setPhoneNumber(_phoneNumberController.text);
 
       try {
         final AuthCredential credential = PhoneAuthProvider.credential(
@@ -45,7 +68,7 @@ class _CreateAccountState extends State<CreateAccount> {
         // but now it is deprecated and does not need to make a key
         showSnackbar('Welcome $username!');
         Timer(const Duration(seconds: 2), () {
-          Navigator.pop(context, username);
+          Navigator.pop(context, info);
         });
       } catch (e) {
         showSnackbar("Failed to sign in: " + e.toString());
@@ -59,8 +82,10 @@ class _CreateAccountState extends State<CreateAccount> {
   }
 
   verifyPhoneNumber() async {
-    // check if the user has previously authenticated, and if they can be
-    // automatically signed in to Firebase without sumitting another SMS verification code
+    /*
+    check if the user has previously authenticated, and if they can be
+    automatically signed in to Firebase without sumitting another SMS verification code
+    */
     PhoneVerificationCompleted verificationCompleted =
         (PhoneAuthCredential PhoneAuthCredential) async {
       await _auth.signInWithCredential(PhoneAuthCredential);

@@ -16,11 +16,11 @@ class EditProfile extends StatefulWidget {
 
 class _EditProfileState extends State<EditProfile> {
   TextEditingController displayNameController = TextEditingController();
-  TextEditingController bioController = TextEditingController();
+  // TextEditingController bioController = TextEditingController();
   bool isLoading = false;
   User? user;
   bool _displayNameValid = true;
-  bool _bioValid = true;
+  // bool _bioValid = true;
 
   @override
   void initState() {
@@ -35,7 +35,7 @@ class _EditProfileState extends State<EditProfile> {
     DocumentSnapshot doc = await userRef.doc(widget.currentUserId).get();
     user = User.fromDocument(doc);
     displayNameController.text = user!.displayName;
-    bioController.text = user!.bio;
+    // bioController.text = user!.bio;
     setState(() {
       isLoading = false;
     });
@@ -66,30 +66,30 @@ class _EditProfileState extends State<EditProfile> {
     );
   }
 
-  Column buildBioField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Padding(
-          padding: EdgeInsets.only(top: 12.0),
-          child: Text(
-            'Bio',
-            style: TextStyle(
-              color: Colors.grey,
-            ),
-          ),
-        ),
-        TextField(
-          controller: bioController,
-          decoration: InputDecoration(
-            hintText: 'Update Bio',
-            // for widget 'TextFormField', there is validator field for this
-            errorText: _bioValid ? null : 'Bio too long',
-          ),
-        ),
-      ],
-    );
-  }
+  // Column buildBioField() {
+  //   return Column(
+  //     crossAxisAlignment: CrossAxisAlignment.start,
+  //     children: <Widget>[
+  //       Padding(
+  //         padding: EdgeInsets.only(top: 12.0),
+  //         child: Text(
+  //           'Bio',
+  //           style: TextStyle(
+  //             color: Colors.grey,
+  //           ),
+  //         ),
+  //       ),
+  //       TextField(
+  //         // controller: bioController,
+  //         decoration: InputDecoration(
+  //           hintText: 'Update Bio',
+  //           // for widget 'TextFormField', there is validator field for this
+  //           errorText: _bioValid ? null : 'Bio too long',
+  //         ),
+  //       ),
+  //     ],
+  //   );
+  // }
 
   updateProfileData() {
     setState(() {
@@ -97,15 +97,16 @@ class _EditProfileState extends State<EditProfile> {
               displayNameController.text.isEmpty
           ? _displayNameValid = false
           : _displayNameValid = true;
-      bioController.text.trim().length > 100
-          ? _bioValid = false
-          : _bioValid = true;
+      // bioController.text.trim().length > 100
+      //     ? _bioValid = false
+      //     : _bioValid = true;
     });
 
-    if (_displayNameValid && _bioValid) {
+    // if (_displayNameValid && _bioValid) {
+    if (_displayNameValid) {
       userRef.doc(widget.currentUserId).update({
         'displayName': displayNameController.text,
-        'bio': bioController.text,
+        // 'bio': bioController.text,
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -164,7 +165,7 @@ class _EditProfileState extends State<EditProfile> {
                         child: Column(
                           children: <Widget>[
                             buildDisplayNameField(),
-                            buildBioField(),
+                            // buildBioField(),
                           ],
                         ),
                       ),

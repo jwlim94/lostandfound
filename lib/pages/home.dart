@@ -78,9 +78,11 @@ class _HomeState extends State<Home> {
 
       // 2. if the user does not exist, then we want to take them to the create account page
       if (!doc.exists) {
-        // 3. get username from create account
-        final username = await Navigator.push(
+        // 3. get username and phoneNumber from create account
+        final info = await Navigator.push(
             context, MaterialPageRoute(builder: (context) => CreateAccount()));
+        final username = info.username;
+        final phoneNumber = info.phoneNumber;
 
         // 4. use the retrieved username to make new user document in users collection
         userRef.doc(user.id).set({
@@ -89,8 +91,11 @@ class _HomeState extends State<Home> {
           'photoUrl': user.photoUrl,
           'email': user.email,
           'displayName': user.displayName,
-          'bio': '',
+          'phoneNumber': phoneNumber,
+          // 'bio': '',
           'timestamp': timestamp,
+          'numPosts': 0,
+          'numClaims': 0,
         });
 
         // update the doc since some property has changed (ex. username)
