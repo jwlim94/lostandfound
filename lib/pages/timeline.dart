@@ -95,7 +95,11 @@ class _TimelineState extends State<Timeline> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: header(context, titleText: 'Timeline'),
+      appBar: header(
+        context,
+        titleText: 'Timeline',
+        removeBackButton: true,
+      ),
       // StreamBuilder makes it possible to put logic only in build method
       // both for fetching and showing data
       // StreamBuilder vs FutureBuilder

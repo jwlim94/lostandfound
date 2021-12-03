@@ -12,7 +12,11 @@ class _ActivityFeedState extends State<ActivityFeed> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: header(context, titleText: 'Feed'),
+      appBar: header(
+        context,
+        titleText: 'Feed',
+        removeBackButton: true,
+      ),
     );
   }
 }

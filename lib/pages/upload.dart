@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/models/user.dart';
@@ -59,16 +60,18 @@ class _UploadState extends State<Upload> {
     final XFile? file = await _picker.pickImage(source: ImageSource.gallery);
     // (image_picker: ^0.7.4 version)
     // final pickedFile = await _picker.getImage(source: ImageSource.gallery);
-    setState(() {
-      // this is to convert XFile to File (image_picker: ^0.8.4+4 version)
-      this.file = File(file!.path);
-      // (image_picker: ^0.7.4 version)
-      // file = File(pickedFile!.path);
-    });
-    // final file = await ImagePicker().pickImage(source: ImageSource.gallery);
-    // setState(() {
-    //   this.file = File(file!.path);
-    // });
+    if (file != null) {
+      setState(() {
+        // this is to convert XFile to File (image_picker: ^0.8.4+4 version)
+        this.file = File(file.path);
+        // (image_picker: ^0.7.4 version)
+        // file = File(pickedFile!.path);
+      });
+      // final file = await ImagePicker().pickImage(source: ImageSource.gallery);
+      // setState(() {
+      //   this.file = File(file!.path);
+      // });
+    }
   }
 
   selectImage(parentContext) {
@@ -179,19 +182,42 @@ class _UploadState extends State<Upload> {
     });
   }
 
+  updateUserPostCountInFireStore() async {
+    DocumentSnapshot doc = await userRef.doc(widget.currentUser!.id).get();
+    User user = User.fromDocument(doc);
+    final int currentNumPosts = user.numPosts;
+
+    userRef.doc(widget.currentUser!.id).update({
+      'numPosts': currentNumPosts + 1,
+    });
+  }
+
   handleSubmit() async {
+    // set states
     setState(() {
       isUploading = true;
     });
+
+    // compress image
     await compressImage();
+
+    // get mediaUrl
     String? mediaUrl = await uploadImage(file);
+
+    // create post in firestore
     createPostInFirestore(
         mediaUrl: mediaUrl,
         location: locationController.text,
         description: captionController.text);
+
+    // update post count in firestore
+    updateUserPostCountInFireStore();
+
     // clearing out
     captionController.clear();
     locationController.clear();
+
+    // set states
     setState(() {
       file = null;
       isUploading = false;
