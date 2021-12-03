@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -26,8 +25,12 @@ class Upload extends StatefulWidget {
 }
 
 class _UploadState extends State<Upload> {
+  TextEditingController typeController = TextEditingController();
+  TextEditingController colorController = TextEditingController();
+  TextEditingController titleController = TextEditingController();
+  TextEditingController descriptionController = TextEditingController();
   TextEditingController locationController = TextEditingController();
-  TextEditingController captionController = TextEditingController();
+
   // (image_picker: ^0.8.4+4 version) and (image_picker: ^0.7.4 version)
   // this is File because Widget image: FileImage() only accepts File
   File? file;
@@ -164,21 +167,29 @@ class _UploadState extends State<Upload> {
     // });
   }
 
+  // create an item in the firestore
   createPostInFirestore(
-      {String? mediaUrl, String? location, String? description}) {
-    postRef
+      {String? mediaUrl,
+      String? type,
+      String? color,
+      String? title,
+      String? description,
+      String? location}) {
+    itemRef
         .doc(widget.currentUser!.id)
-        .collection('userPosts')
+        .collection('userItems')
         .doc(postId)
         .set({
       'postId': postId,
       'ownerId': widget.currentUser!.id,
       'username': widget.currentUser!.username,
       'mediaUrl': mediaUrl,
+      'type': type,
+      'color': color,
+      'title': title,
       'description': description,
       'location': location,
       'timestamp': timestamp,
-      'likes': {},
     });
   }
 
@@ -207,14 +218,21 @@ class _UploadState extends State<Upload> {
     // create post in firestore
     createPostInFirestore(
         mediaUrl: mediaUrl,
-        location: locationController.text,
-        description: captionController.text);
+        type: typeController.text,
+        color: colorController.text,
+        title: titleController.text,
+        description: descriptionController.text,
+        location: locationController.text);
 
     // update post count in firestore
     updateUserPostCountInFireStore();
 
+    // FIXME: make sure to clear out as well when user went back by back button
     // clearing out
-    captionController.clear();
+    typeController.clear();
+    colorController.clear();
+    titleController.clear();
+    descriptionController.clear();
     locationController.clear();
 
     // set states
@@ -237,7 +255,7 @@ class _UploadState extends State<Upload> {
           onPressed: clearImage,
         ),
         title: const Text(
-          'Caption Post',
+          'Post an item',
           style: TextStyle(color: Colors.black),
         ),
         actions: [
@@ -257,6 +275,8 @@ class _UploadState extends State<Upload> {
       body: ListView(
         children: <Widget>[
           isUploading ? linearProgress() : const Text(''),
+
+          // image
           Container(
             height: 220.0,
             width: MediaQuery.of(context).size.width * 0.8,
@@ -278,27 +298,157 @@ class _UploadState extends State<Upload> {
           const Padding(
             padding: EdgeInsets.only(top: 10.0),
           ),
-          ListTile(
-            leading: CircleAvatar(
-              backgroundImage:
-                  CachedNetworkImageProvider(widget.currentUser!.photoUrl),
-            ),
-            title: Container(
-              width: 250.0,
-              child: TextField(
-                controller: captionController,
-                decoration: const InputDecoration(
-                  hintText: 'Write a caption...',
-                  border: InputBorder.none,
+
+          // FIXME: make sure to use dropdown menu for choosing the type
+          // type
+          Row(
+            children: <Widget>[
+              const Padding(
+                padding: EdgeInsets.only(
+                  left: 16.0,
+                  right: 16.0,
+                  top: 12.0,
+                  bottom: 12.0,
+                ),
+                child: Icon(
+                  Icons.list,
+                  color: Colors.black,
+                  size: 35.0,
                 ),
               ),
-            ),
+              Padding(
+                padding: const EdgeInsets.all(0.0),
+                child: Container(
+                  width: 250.0,
+                  child: TextField(
+                    keyboardType: TextInputType.multiline,
+                    maxLines: null,
+                    autocorrect: false,
+                    controller: typeController,
+                    decoration: const InputDecoration(
+                      hintText: 'What is the type of this item?',
+                      border: InputBorder.none,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
           const Divider(),
+
+          // color
+          Row(
+            children: <Widget>[
+              const Padding(
+                padding: EdgeInsets.only(
+                  left: 16.0,
+                  right: 16.0,
+                  top: 12.0,
+                  bottom: 12.0,
+                ),
+                child: Icon(
+                  Icons.colorize,
+                  color: Colors.black,
+                  size: 35.0,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(0.0),
+                child: Container(
+                  width: 250.0,
+                  child: TextField(
+                    keyboardType: TextInputType.multiline,
+                    maxLines: null,
+                    autocorrect: false,
+                    controller: colorController,
+                    decoration: const InputDecoration(
+                      hintText: 'What is the color of this item?',
+                      border: InputBorder.none,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const Divider(),
+
+          // title
+          Row(
+            children: <Widget>[
+              const Padding(
+                padding: EdgeInsets.only(
+                  left: 16.0,
+                  right: 16.0,
+                  top: 12.0,
+                  bottom: 12.0,
+                ),
+                child: Icon(
+                  Icons.title,
+                  color: Colors.black,
+                  size: 35.0,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(0.0),
+                child: Container(
+                  width: 250.0,
+                  child: TextField(
+                    keyboardType: TextInputType.multiline,
+                    maxLines: null,
+                    autocorrect: false,
+                    controller: titleController,
+                    decoration: const InputDecoration(
+                      hintText: 'Write a title',
+                      border: InputBorder.none,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const Divider(),
+
+          // description
+          Row(
+            children: <Widget>[
+              const Padding(
+                padding: EdgeInsets.only(
+                  left: 16.0,
+                  right: 16.0,
+                  top: 12.0,
+                  bottom: 12.0,
+                ),
+                child: Icon(
+                  Icons.description,
+                  color: Colors.black,
+                  size: 35.0,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(0.0),
+                child: Container(
+                  width: 250.0,
+                  child: TextField(
+                    keyboardType: TextInputType.multiline,
+                    maxLines: null,
+                    autocorrect: false,
+                    controller: descriptionController,
+                    decoration: const InputDecoration(
+                      hintText: 'Write a description',
+                      border: InputBorder.none,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const Divider(),
+
+          // location
           ListTile(
             leading: const Icon(
               Icons.pin_drop,
-              color: Colors.teal,
+              color: Colors.black,
               size: 35.0,
             ),
             title: Container(
@@ -306,12 +456,14 @@ class _UploadState extends State<Upload> {
               child: TextField(
                 controller: locationController,
                 decoration: const InputDecoration(
-                  hintText: 'Where was this photo taken?',
+                  hintText: 'Where was this item found?',
                   border: InputBorder.none,
                 ),
               ),
             ),
           ),
+
+          // get current ocation button
           Container(
             width: 200.0,
             height: 100.0,
