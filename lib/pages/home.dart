@@ -3,7 +3,6 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/models/user.dart';
-import 'package:flutter_application_1/pages/activity_feed.dart';
 import 'package:flutter_application_1/pages/create_account.dart';
 import 'package:flutter_application_1/pages/profile.dart';
 import 'package:flutter_application_1/pages/search.dart';
@@ -156,7 +155,6 @@ class _HomeState extends State<Home> {
           //     primary: Colors.black,
           //   ),
           // ),
-          const ActivityFeed(),
           Upload(currentUser: currentUser),
           const Search(),
           Profile(profileId: currentUser?.id),
@@ -172,9 +170,6 @@ class _HomeState extends State<Home> {
           items: const [
             BottomNavigationBarItem(
               icon: Icon(Icons.whatshot),
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.notifications_active),
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.upload_file),
