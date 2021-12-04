@@ -175,21 +175,19 @@ class _UploadState extends State<Upload> {
       String? title,
       String? description,
       String? location}) {
-    itemRef
-        .doc(widget.currentUser!.id)
-        .collection('userItems')
-        .doc(postId)
-        .set({
+    itemRef.doc(postId).set({
       'postId': postId,
       'ownerId': widget.currentUser!.id,
       'username': widget.currentUser!.username,
       'mediaUrl': mediaUrl,
-      'type': type,
+      // to search item by not case sensitive
+      'type': type!.toLowerCase(),
       'color': color,
       'title': title,
       'description': description,
       'location': location,
-      'timestamp': timestamp,
+      'timestamp': timestamp.toString(),
+      'isClaimed': false,
     });
   }
 

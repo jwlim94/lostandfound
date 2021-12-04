@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/models/item.dart';
 import 'package:flutter_application_1/models/user.dart';
 import 'package:flutter_application_1/pages/home.dart';
 import 'package:flutter_application_1/widgets/header.dart';
@@ -30,7 +31,7 @@ class _ProfileState extends State<Profile> {
 
   bool isLoding = false;
   int postCount = 0;
-  List<Post> posts = [];
+  List<Item> items = [];
 
   @override
   void initState() {
@@ -43,15 +44,12 @@ class _ProfileState extends State<Profile> {
     setState(() {
       isLoding = true;
     });
-    QuerySnapshot snapshot = await postRef
-        .doc(widget.profileId)
-        .collection('userPosts')
-        .orderBy('timestamp', descending: true)
-        .get();
+    QuerySnapshot snapshot =
+        await itemRef.orderBy('timestamp', descending: true).get();
     setState(() {
       isLoding = false;
       postCount = snapshot.docs.length;
-      posts = snapshot.docs.map((doc) => Post.fromDocument(doc)).toList();
+      items = snapshot.docs.map((doc) => Item.fromDocument(doc)).toList();
     });
   }
 
@@ -213,7 +211,7 @@ class _ProfileState extends State<Profile> {
   buildProfilePosts() {
     if (isLoding) {
       return circularProgress();
-    } else if (posts.isEmpty) {
+    } else if (items.isEmpty) {
       return Container(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -235,10 +233,10 @@ class _ProfileState extends State<Profile> {
       );
     } else if (postOrientation == 'posts') {
       List<GridTile> postsGridTiles = [];
-      posts.forEach((post) {
+      items.forEach((item) {
         postsGridTiles.add(GridTile(
           // PostTile came from 'post_tile.dart'
-          child: PostTile(post),
+          child: PostTile(item),
         ));
       });
       return GridView.count(
@@ -254,10 +252,10 @@ class _ProfileState extends State<Profile> {
     } else if (postOrientation == 'claims') {
       /* FIXME: change every 'posts' to 'claims' */
       List<GridTile> postsGridTiles = [];
-      posts.forEach((post) {
+      items.forEach((item) {
         postsGridTiles.add(GridTile(
           // PostTile came from 'post_tile.dart'
-          child: PostTile(post),
+          child: PostTile(item),
         ));
       });
       return GridView.count(

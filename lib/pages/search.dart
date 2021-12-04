@@ -1,8 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/models/item.dart';
 import 'package:flutter_application_1/models/user.dart';
 import 'package:flutter_application_1/pages/home.dart';
+import 'package:flutter_application_1/pages/item_info.dart';
+import 'package:flutter_application_1/widgets/custom_image.dart';
 import 'package:flutter_application_1/widgets/progress.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -23,11 +26,17 @@ class _SearchState extends State<Search> {
 
   // ?: query is passed automatically
   handleSearch(String query) {
-    Future<QuerySnapshot> users =
-        userRef.where('displayName', isGreaterThanOrEqualTo: query).get();
+    // to search item without case sensitive
+    // query = query.toLowerCase();
+
+    // FIXME: only give results where isClaimed false (do compound query)
+    Future<QuerySnapshot> items = itemRef
+        .where('type', isGreaterThanOrEqualTo: query)
+        .where('type', isLessThan: query + 'z')
+        .get();
 
     setState(() {
-      searchResultsFuture = users;
+      searchResultsFuture = items;
     });
   }
 
@@ -35,6 +44,7 @@ class _SearchState extends State<Search> {
     searchController.clear();
   }
 
+  // FIXME: make it search through dropdown meny by item types
   AppBar buildSearchField() {
     return AppBar(
       backgroundColor: Colors.white,
@@ -42,17 +52,21 @@ class _SearchState extends State<Search> {
         controller: searchController,
         cursorColor: Colors.black,
         decoration: InputDecoration(
-          hintText: 'Search for an item...',
-          filled: true,
-          // bottom line color when focused
-          focusedBorder: const UnderlineInputBorder(
-            borderSide: BorderSide(color: Colors.black),
-          ),
+          // remove underline border
+          border: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          errorBorder: InputBorder.none,
+          disabledBorder: InputBorder.none,
+
+          hintText: 'Search item by type',
+
           prefixIcon: const Icon(
             Icons.search,
             size: 28.0,
             color: Colors.black,
           ),
+
           suffixIcon: IconButton(
             icon: const Icon(Icons.clear),
             color: Colors.black,
@@ -80,16 +94,16 @@ class _SearchState extends State<Search> {
             // in order to use SvgPicture, need to implement dependency
             SvgPicture.asset(
               'assets/images/search-item.svg',
-              height: orientation == Orientation.portrait ? 300.0 : 200.0,
+              height: orientation == Orientation.portrait ? 260.0 : 200.0,
             ),
+            const Padding(padding: EdgeInsets.only(bottom: 20.0)),
             const Text(
               'Find Items',
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Colors.black87,
-                fontStyle: FontStyle.italic,
                 fontWeight: FontWeight.w500,
-                fontSize: 50.0,
+                fontSize: 35.0,
               ),
             ),
           ],
@@ -108,13 +122,13 @@ class _SearchState extends State<Search> {
         if (!snapshot.hasData) {
           return circularProgress();
         }
-        // the reason why UserResult is made is to store it in the List
-        // searchResult and user is just the same but User(Model) cannot be stored as a List
-        List<UserResult> searchResults = [];
+
+        /* the reason why ItemResult is made is to store it in the List
+        searchResult and item is just the same but Item(Model) cannot be stored as a List*/
+        List<ItemResult> searchResults = [];
         snapshot.data!.docs.forEach((doc) {
-          // This step is needed to deserialize the documents
-          User user = User.fromDocument(doc);
-          UserResult searchResult = UserResult(user);
+          Item item = Item.fromDocument(doc);
+          ItemResult searchResult = ItemResult(item);
           searchResults.add(searchResult);
         });
         return ListView(
@@ -135,43 +149,42 @@ class _SearchState extends State<Search> {
   }
 }
 
-// showing the results from searching
-class UserResult extends StatelessWidget {
-  final User user;
+showItemInfo(context, item) {
+  Navigator.push(
+      context,
+      MaterialPageRoute(
+          builder: (context) => ItemInfo(
+                item: item,
+              )));
+}
+
+// showing item results from searching
+class ItemResult extends StatelessWidget {
+  final Item item;
 
   // constructor
-  UserResult(this.user);
+  ItemResult(this.item);
 
   @override
   Widget build(BuildContext context) {
+    // FIXME: make a bigger good UI for search result of items
     return Container(
       color: Colors.white,
-      margin: const EdgeInsets.only(left: 15.0, right: 15.0),
+      margin: const EdgeInsets.all(2.0),
       child: Column(
         children: <Widget>[
           GestureDetector(
-            onTap: () => print('tapped'),
+            onTap: () => showItemInfo(context, item),
             child: ListTile(
-              leading: CircleAvatar(
-                backgroundColor: Colors.grey,
-                backgroundImage: CachedNetworkImageProvider(user.photoUrl),
-              ),
+              leading: cachedNetworkImage(item.mediaUrl),
               title: Text(
-                user.displayName,
-                style: const TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                ),
+                'Type: ' + item.type,
               ),
               subtitle: Text(
-                user.username,
-                style: const TextStyle(
-                  color: Colors.black,
-                ),
+                'Color: ' + item.color,
               ),
             ),
           ),
-          // Divider() is used to divide each child in children
           const Divider(
             height: 2.0,
             color: Colors.black,
