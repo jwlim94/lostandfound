@@ -3,7 +3,6 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/models/user.dart';
-import 'package:flutter_application_1/pages/activity_feed.dart';
 import 'package:flutter_application_1/pages/create_account.dart';
 import 'package:flutter_application_1/pages/profile.dart';
 import 'package:flutter_application_1/pages/search.dart';
@@ -19,6 +18,7 @@ final authHeaders = googleSignIn.currentUser!.authHeaders;
 final Reference storageRef = FirebaseStorage.instance.ref();
 final userRef = FirebaseFirestore.instance.collection('users');
 final postRef = FirebaseFirestore.instance.collection('posts');
+final itemRef = FirebaseFirestore.instance.collection('items');
 final DateTime timestamp = DateTime.now();
 User? currentUser;
 
@@ -38,19 +38,22 @@ class _HomeState extends State<Home> {
   void initState() {
     super.initState();
     pageController = PageController();
+
     // Detects when user signed in
     googleSignIn.onCurrentUserChanged.listen((account) {
       handleSignIn(account);
     }, onError: (err) {
       print('Error signing in: $err');
     });
+
+    // FIXME: this makes the screen show twice. How can we prevent that?
     // Reauthenticate user when app is opened
     // this method returns a Promise
-    googleSignIn.signInSilently(suppressErrors: false).then((account) {
-      handleSignIn(account);
-    }).catchError((err) {
-      print('Error signing in: $err');
-    });
+    // googleSignIn.signInSilently(suppressErrors: false).then((account) {
+    //   handleSignIn(account);
+    // }).catchError((err) {
+    //   print('Error signing in: $err');
+    // });
   }
 
   handleSignIn(GoogleSignInAccount? account) {
@@ -75,9 +78,11 @@ class _HomeState extends State<Home> {
 
       // 2. if the user does not exist, then we want to take them to the create account page
       if (!doc.exists) {
-        // 3. get username from create account
-        final username = await Navigator.push(
+        // 3. get username and phoneNumber from create account
+        final info = await Navigator.push(
             context, MaterialPageRoute(builder: (context) => CreateAccount()));
+        final username = info.username;
+        final phoneNumber = info.phoneNumber;
 
         // 4. use the retrieved username to make new user document in users collection
         userRef.doc(user.id).set({
@@ -86,8 +91,11 @@ class _HomeState extends State<Home> {
           'photoUrl': user.photoUrl,
           'email': user.email,
           'displayName': user.displayName,
-          'bio': '',
+          'phoneNumber': phoneNumber,
+          // 'bio': '',
           'timestamp': timestamp,
+          'numPosts': 0,
+          'numClaims': 0,
         });
 
         // update the doc since some property has changed (ex. username)
@@ -139,15 +147,14 @@ class _HomeState extends State<Home> {
     return Scaffold(
       body: PageView(
         children: <Widget>[
-          // Timeline(),
-          ElevatedButton(
-            onPressed: logout,
-            child: const Text('Logout'),
-            style: ElevatedButton.styleFrom(
-              primary: Colors.black,
-            ),
-          ),
-          const ActivityFeed(),
+          const Timeline(),
+          // ElevatedButton(
+          //   onPressed: logout,
+          //   child: const Text('Logout'),
+          //   style: ElevatedButton.styleFrom(
+          //     primary: Colors.black,
+          //   ),
+          // ),
           Upload(currentUser: currentUser),
           const Search(),
           Profile(profileId: currentUser?.id),
@@ -159,13 +166,10 @@ class _HomeState extends State<Home> {
       bottomNavigationBar: CupertinoTabBar(
           currentIndex: pageIndex,
           onTap: onTap,
-          activeColor: Theme.of(context).colorScheme.secondary,
+          activeColor: Colors.blue,
           items: const [
             BottomNavigationBarItem(
               icon: Icon(Icons.whatshot),
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.notifications_active),
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.upload_file),
@@ -191,15 +195,16 @@ class _HomeState extends State<Home> {
   Scaffold buildUnAuthScreen() {
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topRight,
-            end: Alignment.bottomLeft,
-            colors: [
-              Theme.of(context).colorScheme.primary.withOpacity(0.3),
-              Theme.of(context).colorScheme.secondary,
-            ],
-          ),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          // gradient: LinearGradient(
+          //   begin: Alignment.topRight,
+          //   end: Alignment.bottomLeft,
+          //   colors: [
+          //     Theme.of(context).colorScheme.primary.withOpacity(0.3),
+          //     Theme.of(context).colorScheme.secondary,
+          //   ],
+          // ),
         ),
         alignment: Alignment.center,
         child: Column(
@@ -207,26 +212,30 @@ class _HomeState extends State<Home> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
             const Text(
-              'Flutter Share',
+              'Lost & Found',
               style: TextStyle(
                 fontFamily: 'Signatra',
                 fontSize: 90.0,
-                color: Colors.white,
+                color: Colors.blue,
               ),
             ),
-            GestureDetector(
-              onTap: login,
-              child: Container(
-                width: 260.0,
-                height: 60.0,
-                decoration: const BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage('assets/images/google_signin_button.png'),
-                    fit: BoxFit.cover,
+            Padding(
+              padding: const EdgeInsets.only(top: 40.0),
+              child: GestureDetector(
+                onTap: login,
+                child: Container(
+                  width: 260.0,
+                  height: 60.0,
+                  decoration: const BoxDecoration(
+                    image: DecorationImage(
+                      image:
+                          AssetImage('assets/images/google_signin_button.png'),
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
               ),
-            )
+            ),
           ],
         ),
       ),

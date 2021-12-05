@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/models/item.dart';
 import 'package:flutter_application_1/models/user.dart';
 import 'package:flutter_application_1/pages/home.dart';
 import 'package:flutter_application_1/widgets/header.dart';
@@ -11,6 +12,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import 'edit_profile.dart';
 
+// FIXME: fetch claimed items as well (just like posts) to show
 class Profile extends StatefulWidget {
   final String? profileId;
 
@@ -21,11 +23,15 @@ class Profile extends StatefulWidget {
 }
 
 class _ProfileState extends State<Profile> {
+  // this might be different when viewing other people's profile
   final String? currentUserId = currentUser?.id;
-  String postOrientation = 'grid';
+
+  // default to show posts
+  String postOrientation = 'posts';
+
   bool isLoding = false;
   int postCount = 0;
-  List<Post> posts = [];
+  List<Item> posts = [];
 
   @override
   void initState() {
@@ -38,15 +44,14 @@ class _ProfileState extends State<Profile> {
     setState(() {
       isLoding = true;
     });
-    QuerySnapshot snapshot = await postRef
-        .doc(widget.profileId)
-        .collection('userPosts')
+    QuerySnapshot snapshot = await itemRef
+        .where('ownerId', isEqualTo: currentUserId)
         .orderBy('timestamp', descending: true)
         .get();
     setState(() {
       isLoding = false;
       postCount = snapshot.docs.length;
-      posts = snapshot.docs.map((doc) => Post.fromDocument(doc)).toList();
+      posts = snapshot.docs.map((doc) => Item.fromDocument(doc)).toList();
     });
   }
 
@@ -156,8 +161,7 @@ class _ProfileState extends State<Profile> {
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: <Widget>[
                             buildCountColumn('posts', postCount),
-                            buildCountColumn('followers', 0),
-                            buildCountColumn('following', 0),
+                            buildCountColumn('claims', 0),
                           ],
                         ),
                         // why Row() here? it is just a button?
@@ -196,7 +200,7 @@ class _ProfileState extends State<Profile> {
               Container(
                 alignment: Alignment.centerLeft,
                 padding: EdgeInsets.only(top: 2.0),
-                child: Text(user.bio),
+                // child: Text(user.bio),
               ),
             ],
           ),
@@ -229,53 +233,90 @@ class _ProfileState extends State<Profile> {
           ],
         ),
       );
-    } else if (postOrientation == 'grid') {
-      List<GridTile> gridTiles = [];
-      posts.forEach((post) {
-        gridTiles.add(GridTile(
-          child: PostTile(post),
+    } else if (postOrientation == 'posts') {
+      List<GridTile> postsGridTiles = [];
+      posts.forEach((item) {
+        postsGridTiles.add(GridTile(
+          // PostTile came from 'post_tile.dart'
+          child: PostTile(item),
         ));
       });
       return GridView.count(
+        padding: EdgeInsets.all(1.5),
         crossAxisCount: 3,
         childAspectRatio: 1.0,
         mainAxisSpacing: 1.5,
         crossAxisSpacing: 1.5,
         shrinkWrap: true,
         physics: NeverScrollableScrollPhysics(),
-        children: gridTiles,
+        children: postsGridTiles,
       );
-    } else if (postOrientation == 'list') {
-      return Column(
-        children: posts,
+    } else if (postOrientation == 'claims') {
+      /* FIXME: change every 'posts' to 'claims' */
+      List<GridTile> postsGridTiles = [];
+      posts.forEach((item) {
+        postsGridTiles.add(GridTile(
+          // PostTile came from 'post_tile.dart'
+          child: PostTile(item),
+        ));
+      });
+      return GridView.count(
+        padding: EdgeInsets.all(1.5),
+        crossAxisCount: 3,
+        childAspectRatio: 1.0,
+        mainAxisSpacing: 1.5,
+        crossAxisSpacing: 1.5,
+        shrinkWrap: true,
+        physics: NeverScrollableScrollPhysics(),
+        children: postsGridTiles,
       );
     }
   }
 
+  // set orientation between posts and claims as it gets toggled
   setPostOrientation(String orientation) {
     setState(() {
       this.postOrientation = orientation;
+      print(postOrientation);
     });
   }
 
+  // toggle between posts and claims to show users of those items
   buildTogglePostOrientation() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: <Widget>[
-        IconButton(
-          // () => syntax works, without it does not work... why?
-          onPressed: () => setPostOrientation('grid'),
-          icon: Icon(Icons.grid_on),
-          color: postOrientation == 'grid'
-              ? Theme.of(context).colorScheme.primary
-              : Colors.grey,
+        GestureDetector(
+          /* without () => syntax, setPostOrientation() gets called automatically
+          by putting () => syntax, if only works when we click */
+          onTap: () => setPostOrientation('posts'),
+          child: Container(
+            padding: const EdgeInsets.all(12.0),
+            child: Text(
+              'Posts',
+              style: TextStyle(
+                color: postOrientation == 'posts' ? Colors.blue : Colors.grey,
+                fontSize: 16.0,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
         ),
-        IconButton(
-          onPressed: () => setPostOrientation('list'),
-          icon: Icon(Icons.list),
-          color: postOrientation == 'list'
-              ? Theme.of(context).colorScheme.primary
-              : Colors.grey,
+        GestureDetector(
+          /* without () => syntax, setPostOrientation() gets called automatically
+          by putting () => syntax, if only works when we click */
+          onTap: () => setPostOrientation('claims'),
+          child: Container(
+            padding: const EdgeInsets.all(12.0),
+            child: Text(
+              'Claims',
+              style: TextStyle(
+                color: postOrientation == 'claims' ? Colors.blue : Colors.grey,
+                fontSize: 16.0,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
         ),
       ],
     );
@@ -284,7 +325,11 @@ class _ProfileState extends State<Profile> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: header(context, titleText: 'Profile'),
+      appBar: header(
+        context,
+        titleText: 'Profile',
+        removeBackButton: true,
+      ),
       body: ListView(
         children: <Widget>[
           buildProfileHeader(),
