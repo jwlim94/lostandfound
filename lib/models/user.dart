@@ -7,7 +7,9 @@ class User {
   final String email;
   final String photoUrl;
   final String displayName;
-  final String bio;
+  final String phoneNumber;
+  final int numPosts;
+  final int numClaims;
 
   // constuctor
   User({
@@ -16,7 +18,9 @@ class User {
     required this.email,
     required this.photoUrl,
     required this.displayName,
-    required this.bio,
+    required this.phoneNumber,
+    required this.numPosts,
+    required this.numClaims,
   });
 
   // factory method is like a static method
@@ -28,7 +32,9 @@ class User {
       username: doc['username'],
       photoUrl: doc['photoUrl'],
       displayName: doc['displayName'],
-      bio: doc['bio'],
+      phoneNumber: doc['phoneNumber'],
+      numPosts: doc['numPosts'],
+      numClaims: doc['numClaims'],
     );
   }
 }
