@@ -147,7 +147,7 @@ class _HomeState extends State<Home> {
     return Scaffold(
       body: PageView(
         children: <Widget>[
-          const Timeline(),
+          Timeline(currentUser: currentUser),
           // ElevatedButton(
           //   onPressed: logout,
           //   child: const Text('Logout'),
