@@ -31,7 +31,7 @@ class _ProfileState extends State<Profile> {
 
   bool isLoding = false;
   int postCount = 0;
-  List<Item> items = [];
+  List<Item> posts = [];
 
   @override
   void initState() {
@@ -44,12 +44,14 @@ class _ProfileState extends State<Profile> {
     setState(() {
       isLoding = true;
     });
-    QuerySnapshot snapshot =
-        await itemRef.orderBy('timestamp', descending: true).get();
+    QuerySnapshot snapshot = await itemRef
+        .where('ownerId', isEqualTo: currentUserId)
+        .orderBy('timestamp', descending: true)
+        .get();
     setState(() {
       isLoding = false;
       postCount = snapshot.docs.length;
-      items = snapshot.docs.map((doc) => Item.fromDocument(doc)).toList();
+      posts = snapshot.docs.map((doc) => Item.fromDocument(doc)).toList();
     });
   }
 
@@ -211,7 +213,7 @@ class _ProfileState extends State<Profile> {
   buildProfilePosts() {
     if (isLoding) {
       return circularProgress();
-    } else if (items.isEmpty) {
+    } else if (posts.isEmpty) {
       return Container(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -233,7 +235,7 @@ class _ProfileState extends State<Profile> {
       );
     } else if (postOrientation == 'posts') {
       List<GridTile> postsGridTiles = [];
-      items.forEach((item) {
+      posts.forEach((item) {
         postsGridTiles.add(GridTile(
           // PostTile came from 'post_tile.dart'
           child: PostTile(item),
@@ -252,7 +254,7 @@ class _ProfileState extends State<Profile> {
     } else if (postOrientation == 'claims') {
       /* FIXME: change every 'posts' to 'claims' */
       List<GridTile> postsGridTiles = [];
-      items.forEach((item) {
+      posts.forEach((item) {
         postsGridTiles.add(GridTile(
           // PostTile came from 'post_tile.dart'
           child: PostTile(item),
