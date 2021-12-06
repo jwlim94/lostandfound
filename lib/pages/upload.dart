@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/models/user.dart';
+import 'package:flutter_application_1/widgets/custom_dropdown.dart';
 import 'package:flutter_application_1/widgets/progress.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:geocoding/geocoding.dart';
@@ -25,7 +26,6 @@ class Upload extends StatefulWidget {
 }
 
 class _UploadState extends State<Upload> {
-  TextEditingController typeController = TextEditingController();
   TextEditingController colorController = TextEditingController();
   TextEditingController titleController = TextEditingController();
   TextEditingController descriptionController = TextEditingController();
@@ -36,6 +36,7 @@ class _UploadState extends State<Upload> {
   File? file;
   bool isUploading = false;
   String postId = Uuid().v4();
+  String itemType = '';
 
   final ImagePicker _picker = ImagePicker();
 
@@ -137,6 +138,10 @@ class _UploadState extends State<Upload> {
   clearImage() {
     setState(() {
       file = null;
+      colorController.clear();
+      titleController.clear();
+      descriptionController.clear();
+      locationController.clear();
     });
   }
 
@@ -181,7 +186,7 @@ class _UploadState extends State<Upload> {
       'username': widget.currentUser!.username,
       'mediaUrl': mediaUrl,
       // to search item by not case sensitive
-      'type': type!.toLowerCase(),
+      'type': itemType.toLowerCase(),
       'color': color,
       'title': title,
       'description': description,
@@ -216,7 +221,7 @@ class _UploadState extends State<Upload> {
     // create post in firestore
     createPostInFirestore(
         mediaUrl: mediaUrl,
-        type: typeController.text,
+        type: itemType,
         color: colorController.text,
         title: titleController.text,
         description: descriptionController.text,
@@ -225,9 +230,7 @@ class _UploadState extends State<Upload> {
     // update post count in firestore
     updateUserPostCountInFireStore();
 
-    // FIXME: make sure to clear out as well when user went back by back button
     // clearing out
-    typeController.clear();
     colorController.clear();
     titleController.clear();
     descriptionController.clear();
@@ -297,7 +300,6 @@ class _UploadState extends State<Upload> {
             padding: EdgeInsets.only(top: 10.0),
           ),
 
-          // FIXME: make sure to use dropdown menu for choosing the type
           // type
           Row(
             children: <Widget>[
@@ -314,24 +316,49 @@ class _UploadState extends State<Upload> {
                   size: 35.0,
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.all(0.0),
-                child: Container(
-                  width: 250.0,
-                  child: TextField(
-                    keyboardType: TextInputType.multiline,
-                    maxLines: null,
-                    autocorrect: false,
-                    controller: typeController,
-                    decoration: const InputDecoration(
-                      hintText: 'What is the type of this item?',
-                      border: InputBorder.none,
-                    ),
-                  ),
-                ),
+              Expanded(
+                child: CustomDropDown(onSelectedParam: (String type) {
+                  setState(() {
+                    itemType = type;
+                  });
+                }),
               ),
             ],
           ),
+
+          // Row(
+          //   children: <Widget>[
+          //     const Padding(
+          //       padding: EdgeInsets.only(
+          //         left: 16.0,
+          //         right: 16.0,
+          //         top: 12.0,
+          //         bottom: 12.0,
+          //       ),
+          //       child: Icon(
+          //         Icons.list,
+          //         color: Colors.black,
+          //         size: 35.0,
+          //       ),
+          //     ),
+          //     Padding(
+          //       padding: const EdgeInsets.all(0.0),
+          //       child: Container(
+          //         width: 250.0,
+          //         child: TextField(
+          //           keyboardType: TextInputType.multiline,
+          //           maxLines: null,
+          //           autocorrect: false,
+          //           controller: typeController,
+          //           decoration: const InputDecoration(
+          //             hintText: 'What is the type of this item?',
+          //             border: InputBorder.none,
+          //           ),
+          //         ),
+          //       ),
+          //     ),
+          //   ],
+          // ),
           const Divider(),
 
           // color
@@ -360,7 +387,7 @@ class _UploadState extends State<Upload> {
                     autocorrect: false,
                     controller: colorController,
                     decoration: const InputDecoration(
-                      hintText: 'What is the color of this item?',
+                      hintText: 'What is the color?',
                       border: InputBorder.none,
                     ),
                   ),
@@ -454,7 +481,7 @@ class _UploadState extends State<Upload> {
               child: TextField(
                 controller: locationController,
                 decoration: const InputDecoration(
-                  hintText: 'Where was this item found?',
+                  hintText: 'Where was it found?',
                   border: InputBorder.none,
                 ),
               ),
