@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-// FIXME: take care of overflows
 class CustomDropDown extends StatefulWidget {
   Function(String) onSelectedParam;
 
@@ -28,7 +27,7 @@ class _CustomDropDownState extends State<CustomDropDown> {
   };
 
   final others = {
-    '1': 'Waterbottle',
+    '1': 'Water bottle',
     '2': 'Wallet',
     '3': 'ID card',
   };
@@ -91,10 +90,12 @@ class _CustomDropDownState extends State<CustomDropDown> {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Column(
       children: <Widget>[
-        Expanded(
+        SizedBox(
+          height: 30.0,
           child: DropdownButton<String>(
+            menuMaxHeight: 300.0,
             items: const [
               DropdownMenuItem<String>(
                 value: 'Electronics',
@@ -111,7 +112,7 @@ class _CustomDropDownState extends State<CustomDropDown> {
             ],
             onChanged: (_value) => generalTypeChanged(_value),
             hint: Text(
-              generalTypeHasChanged ? generalType : 'General type',
+              generalTypeHasChanged ? generalType : 'What is the general type?',
             ),
             // to remove underline
             underline: const SizedBox(),
@@ -119,17 +120,19 @@ class _CustomDropDownState extends State<CustomDropDown> {
         ),
         const Padding(
           padding: EdgeInsets.only(
-            left: 10.0,
+            bottom: 5.0,
           ),
         ),
-        Expanded(
+        SizedBox(
+          height: 30.0,
           child: DropdownButton<String>(
+            menuMaxHeight: 300.0,
             items: menuItems,
             onChanged: disableDropdown
                 ? null
                 : (_value) => specificTypeChanged(_value),
             hint: Text(
-              specificTypeHasChanged ? specificType : 'Specific',
+              specificTypeHasChanged ? specificType : 'Choose a specific type',
             ),
             // to remove underline
             underline: const SizedBox(),

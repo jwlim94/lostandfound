@@ -316,7 +316,7 @@ class _UploadState extends State<Upload> {
                   size: 35.0,
                 ),
               ),
-              Expanded(
+              Container(
                 child: CustomDropDown(onSelectedParam: (String type) {
                   setState(() {
                     itemType = type;
@@ -325,40 +325,6 @@ class _UploadState extends State<Upload> {
               ),
             ],
           ),
-
-          // Row(
-          //   children: <Widget>[
-          //     const Padding(
-          //       padding: EdgeInsets.only(
-          //         left: 16.0,
-          //         right: 16.0,
-          //         top: 12.0,
-          //         bottom: 12.0,
-          //       ),
-          //       child: Icon(
-          //         Icons.list,
-          //         color: Colors.black,
-          //         size: 35.0,
-          //       ),
-          //     ),
-          //     Padding(
-          //       padding: const EdgeInsets.all(0.0),
-          //       child: Container(
-          //         width: 250.0,
-          //         child: TextField(
-          //           keyboardType: TextInputType.multiline,
-          //           maxLines: null,
-          //           autocorrect: false,
-          //           controller: typeController,
-          //           decoration: const InputDecoration(
-          //             hintText: 'What is the type of this item?',
-          //             border: InputBorder.none,
-          //           ),
-          //         ),
-          //       ),
-          //     ),
-          //   ],
-          // ),
           const Divider(),
 
           // color
