@@ -5,7 +5,6 @@ import 'package:flutter_application_1/models/item.dart';
 import 'package:flutter_application_1/models/user.dart';
 import 'package:flutter_application_1/pages/home.dart';
 import 'package:flutter_application_1/widgets/header.dart';
-import 'package:flutter_application_1/widgets/post.dart';
 import 'package:flutter_application_1/widgets/post_tile.dart';
 import 'package:flutter_application_1/widgets/progress.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -15,8 +14,12 @@ import 'edit_profile.dart';
 // FIXME: fetch claimed items as well (just like posts) to show
 class Profile extends StatefulWidget {
   final String? profileId;
+  bool fromOtherUser = false;
 
-  Profile({this.profileId});
+  Profile({
+    this.profileId,
+    required this.fromOtherUser,
+  });
 
   @override
   _ProfileState createState() => _ProfileState();
@@ -45,7 +48,7 @@ class _ProfileState extends State<Profile> {
       isLoding = true;
     });
     QuerySnapshot snapshot = await itemRef
-        .where('ownerId', isEqualTo: currentUserId)
+        .where('ownerId', isEqualTo: widget.profileId)
         .orderBy('timestamp', descending: true)
         .get();
     setState(() {
@@ -62,13 +65,13 @@ class _ProfileState extends State<Profile> {
       children: <Widget>[
         Text(
           count.toString(),
-          style: TextStyle(fontSize: 22.0, fontWeight: FontWeight.bold),
+          style: const TextStyle(fontSize: 22.0, fontWeight: FontWeight.bold),
         ),
         Container(
-          margin: EdgeInsets.only(top: 4.0),
+          margin: const EdgeInsets.only(top: 4.0),
           child: Text(
             label,
-            style: TextStyle(
+            style: const TextStyle(
               color: Colors.grey,
               fontSize: 15.0,
               fontWeight: FontWeight.w400,
@@ -94,7 +97,7 @@ class _ProfileState extends State<Profile> {
   // VoidCallback is just shorthand for Void Function()
   Container buildButton({String? text, VoidCallback? function}) {
     return Container(
-      padding: EdgeInsets.only(top: 2.0),
+      padding: const EdgeInsets.only(top: 2.0),
       child: TextButton(
         onPressed: function,
         child: Container(
@@ -102,7 +105,7 @@ class _ProfileState extends State<Profile> {
           height: 27.0,
           child: Text(
             text!,
-            style: TextStyle(
+            style: const TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.bold,
             ),
@@ -141,7 +144,7 @@ class _ProfileState extends State<Profile> {
         // as DocumentSnapshot to convert the type
         User user = User.fromDocument(snapshot.data as DocumentSnapshot);
         return Padding(
-          padding: EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(16.0),
           child: Column(
             children: <Widget>[
               // first Row
@@ -168,7 +171,9 @@ class _ProfileState extends State<Profile> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: <Widget>[
-                            buildProfileButton(),
+                            widget.fromOtherUser
+                                ? const Text('')
+                                : buildProfileButton(),
                           ],
                         ),
                       ],
@@ -178,10 +183,10 @@ class _ProfileState extends State<Profile> {
               ),
               Container(
                 alignment: Alignment.centerLeft,
-                padding: EdgeInsets.only(top: 12.0),
+                padding: const EdgeInsets.only(top: 12.0),
                 child: Text(
                   user.username,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16.0,
                   ),
@@ -189,17 +194,17 @@ class _ProfileState extends State<Profile> {
               ),
               Container(
                 alignment: Alignment.centerLeft,
-                padding: EdgeInsets.only(top: 4.0),
+                padding: const EdgeInsets.only(top: 4.0),
                 child: Text(
                   user.displayName,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
               Container(
                 alignment: Alignment.centerLeft,
-                padding: EdgeInsets.only(top: 2.0),
+                padding: const EdgeInsets.only(top: 2.0),
                 // child: Text(user.bio),
               ),
             ],
@@ -219,7 +224,7 @@ class _ProfileState extends State<Profile> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             SvgPicture.asset('assets/images/no_content.svg', height: 260.0),
-            Padding(
+            const Padding(
               padding: EdgeInsets.only(top: 20.0),
               child: Text(
                 'No Posts',
@@ -242,13 +247,13 @@ class _ProfileState extends State<Profile> {
         ));
       });
       return GridView.count(
-        padding: EdgeInsets.all(1.5),
+        padding: const EdgeInsets.all(1.5),
         crossAxisCount: 3,
         childAspectRatio: 1.0,
         mainAxisSpacing: 1.5,
         crossAxisSpacing: 1.5,
         shrinkWrap: true,
-        physics: NeverScrollableScrollPhysics(),
+        physics: const NeverScrollableScrollPhysics(),
         children: postsGridTiles,
       );
     } else if (postOrientation == 'claims') {
@@ -261,13 +266,13 @@ class _ProfileState extends State<Profile> {
         ));
       });
       return GridView.count(
-        padding: EdgeInsets.all(1.5),
+        padding: const EdgeInsets.all(1.5),
         crossAxisCount: 3,
         childAspectRatio: 1.0,
         mainAxisSpacing: 1.5,
         crossAxisSpacing: 1.5,
         shrinkWrap: true,
-        physics: NeverScrollableScrollPhysics(),
+        physics: const NeverScrollableScrollPhysics(),
         children: postsGridTiles,
       );
     }
@@ -328,14 +333,14 @@ class _ProfileState extends State<Profile> {
       appBar: header(
         context,
         titleText: 'Profile',
-        removeBackButton: true,
+        removeBackButton: !widget.fromOtherUser,
       ),
       body: ListView(
         children: <Widget>[
           buildProfileHeader(),
-          Divider(),
+          const Divider(),
           buildTogglePostOrientation(),
-          Divider(
+          const Divider(
             height: 0.0,
           ),
           buildProfilePosts(),

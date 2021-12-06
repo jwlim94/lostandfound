@@ -157,7 +157,10 @@ class _HomeState extends State<Home> {
           // ),
           Upload(currentUser: currentUser),
           const Search(),
-          Profile(profileId: currentUser?.id),
+          Profile(
+            profileId: currentUser?.id,
+            fromOtherUser: false,
+          ),
         ],
         controller: pageController,
         onPageChanged: onPageChanged,

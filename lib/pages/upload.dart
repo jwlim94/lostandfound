@@ -186,7 +186,7 @@ class _UploadState extends State<Upload> {
       'title': title,
       'description': description,
       'location': location,
-      'timestamp': timestamp.toString(),
+      'timestamp': timestamp,
       'isClaimed': false,
     });
   }

@@ -187,7 +187,7 @@ class ItemResult extends StatelessWidget {
           ),
           const Divider(
             height: 2.0,
-            color: Colors.black,
+            thickness: 1,
           ),
         ],
       ),
