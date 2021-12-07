@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/main.dart';
 import 'package:flutter_application_1/models/item.dart';
 import 'package:flutter_application_1/models/user.dart';
 import 'package:flutter_application_1/pages/home.dart';
@@ -12,10 +13,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 final userRef = FirebaseFirestore.instance.collection('users');
 
 class Timeline extends StatefulWidget {
-  final User? currentUser;
-
-  const Timeline({required this.currentUser});
-
   @override
   _TimelineState createState() => _TimelineState();
 }
