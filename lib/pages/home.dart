@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart' as FirebaseUser;
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -72,9 +73,10 @@ class _HomeState extends State<Home> {
 
   createUserInFirestore() async {
     // 1. check if user exists in users collection in database (accordding to their id)
-    final user = googleSignIn.currentUser;
+    final user = FirebaseUser.FirebaseAuth.instance.currentUser;
+    final googleUser = googleSignIn.currentUser;
     if (user != null) {
-      DocumentSnapshot doc = await userRef.doc(user.id).get();
+      DocumentSnapshot doc = await userRef.doc(user.uid).get();
 
       // 2. if the user does not exist, then we want to take them to the create account page
       if (!doc.exists) {
@@ -85,12 +87,12 @@ class _HomeState extends State<Home> {
         final phoneNumber = info.phoneNumber;
 
         // 4. use the retrieved username to make new user document in users collection
-        userRef.doc(user.id).set({
-          'id': user.id,
+        userRef.doc(user.uid).set({
+          'id': user.uid,
           'username': username,
-          'photoUrl': user.photoUrl,
-          'email': user.email,
-          'displayName': user.displayName,
+          'photoUrl': googleUser!.photoUrl,
+          'email': googleUser.email,
+          'displayName': googleUser.displayName,
           'phoneNumber': phoneNumber,
           // 'bio': '',
           'timestamp': timestamp,
@@ -99,7 +101,7 @@ class _HomeState extends State<Home> {
         });
 
         // update the doc since some property has changed (ex. username)
-        doc = await userRef.doc(user.id).get();
+        doc = await userRef.doc(user.uid).get();
       }
       // currentUser is a logged in user
       // now currentUser can be used by passing through param to each pages where needed

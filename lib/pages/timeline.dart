@@ -35,7 +35,7 @@ class _TimelineState extends State<Timeline> {
     // retrieve items doc
     QuerySnapshot snapshot = await itemRef.firestore
         .collection('items')
-        .orderBy('timestamp', descending: true)
+        .orderBy('timestamp', descending: false)
         .get();
 
     // retrieve list of items

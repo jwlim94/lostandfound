@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/models/item.dart';
@@ -18,9 +19,21 @@ class ItemInfo extends StatefulWidget {
 }
 
 class _ItemInfoState extends State<ItemInfo> {
+  late bool isAuthor;
+
   @override
   void initState() {
     super.initState();
+
+    if (FirebaseAuth.instance.currentUser?.uid == widget.item.ownerId) {
+      setState(() {
+        isAuthor = true;
+      });
+    } else {
+      setState(() {
+        isAuthor = false;
+      });
+    }
   }
 
   Scaffold buildInfoScreen(context) {
@@ -158,33 +171,34 @@ class _ItemInfoState extends State<ItemInfo> {
                 ),
               ),
 
-              // claim button
-              Container(
-                alignment: Alignment.center,
-                padding: const EdgeInsets.only(top: 5.0),
-                child: TextButton(
-                  onPressed: claimItem,
-                  child: Container(
-                    width: 200.0,
-                    height: 40.0,
-                    child: const Text(
-                      'claim',
-                      style: TextStyle(
-                        fontSize: 20.0,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
+              isAuthor 
+                ? Container() // A list of those who claimed 
+                : Container( 
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.only(top: 5.0),
+                  child: TextButton(
+                    onPressed: claimItem,
+                    child: Container(
+                      width: 200.0,
+                      height: 40.0,
+                      child: const Text(
+                        'claim',
+                        style: TextStyle(
+                          fontSize: 20.0,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: Colors.blue,
-                      border: Border.all(
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
                         color: Colors.blue,
+                        border: Border.all(
+                          color: Colors.blue,
+                        ),
+                        borderRadius: BorderRadius.circular(15),
                       ),
-                      borderRadius: BorderRadius.circular(15),
                     ),
                   ),
-                ),
               ),
             ],
           ),
