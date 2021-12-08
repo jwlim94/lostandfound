@@ -50,6 +50,8 @@ dependencies:
   geolocator: ^7.7.1 # used to get current location
   geocoding: ^2.0.1 # used to get current location
   string_extensions: ^0.4.0 # to use capitalize method
+  redux: ^5.0.0
+  flutter_redux: ^0.8.2
 
 
 dev_dependencies:

@@ -1,12 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/main.dart';
 import 'package:flutter_application_1/models/item.dart';
+import 'package:flutter_application_1/models/user.dart';
 import 'package:flutter_application_1/pages/home.dart';
 import 'package:flutter_application_1/widgets/custom_image.dart';
 import 'package:flutter_application_1/widgets/header.dart';
 import 'package:flutter_application_1/widgets/progress.dart';
+import 'package:image/image.dart';
 import 'package:string_extensions/string_extensions.dart';
+import 'package:uuid/uuid.dart';
 
 class ItemInfo extends StatefulWidget {
   final Item item;
@@ -18,9 +22,58 @@ class ItemInfo extends StatefulWidget {
 }
 
 class _ItemInfoState extends State<ItemInfo> {
+  late bool isAuthor;
+  late bool hasClaimed;
+  bool isLoading = true;
+  User? currentUser;
+  late var claimedMapUpToDate;
+  List<User> claimersList = [];
+
   @override
   void initState() {
     super.initState();
+    currentUser = MyApp.staticStore!.state.currentUser;
+    
+    if (currentUser?.id == widget.item.ownerId) {
+      fetchThoseWhoClaimed();
+      setState(() {
+        isAuthor = true;
+        isLoading = false; 
+      });
+    } else {
+      checkIfClaimed();
+      setState(() {
+        isAuthor = false;
+      });
+    }
+  }
+
+  checkIfClaimed() async { 
+    claimedMapUpToDate = widget.item.claimedMap;
+
+    //key: userId of those who have claimed and not cancelled
+    //value: boolean
+    if (widget.item.currClaimed[currentUser!.id] == true) {
+      setState(() {
+        hasClaimed = true;
+        isLoading = false; 
+      });
+    } else {
+      setState(() { 
+        hasClaimed = false;
+        isLoading = false; 
+      });
+    }
+  }
+
+  fetchThoseWhoClaimed() async {
+    List<User> userList = [];
+    for (String k in widget.item.currClaimed.keys) {
+        userList.add(User.fromDocument(await userRef.doc(k).get()));
+    }
+    setState(() {
+      claimersList = userList;
+    });
   }
 
   Scaffold buildInfoScreen(context) {
@@ -37,7 +90,6 @@ class _ItemInfoState extends State<ItemInfo> {
                   top: 32.0,
                 ),
               ),
-
               // image
               SizedBox(
                 height: 220.0,
@@ -158,41 +210,123 @@ class _ItemInfoState extends State<ItemInfo> {
                 ),
               ),
 
-              // claim button
-              Container(
-                alignment: Alignment.center,
-                padding: const EdgeInsets.only(top: 5.0),
-                child: TextButton(
-                  onPressed: claimItem,
-                  child: Container(
-                    width: 200.0,
-                    height: 40.0,
-                    child: const Text(
-                      'claim',
-                      style: TextStyle(
-                        fontSize: 20.0,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+              Divider(),
+             
+              // List of those who claimed or claim button
+              isLoading 
+                ? circularProgress()
+                : isAuthor 
+                  ?
+                  ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: claimersList.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      
+                      return ListTile(
+                        leading: const Icon(
+                          Icons.person,
+                          color: Colors.grey,
+                          size: 35.0,
+                        ),
+                        trailing: const ElevatedButton(
+                          onPressed: null, 
+                          child: Text("Return"),
+                        ),
+                        title: Container(
+                          width: 250.0,
+                          child: Text(
+                            claimersList[index].displayName,
+                            style: const TextStyle(
+                                fontSize: 16.0, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      );
+                    }
+                  ) 
+                  : Container(
                     alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: Colors.blue,
-                      border: Border.all(
-                        color: Colors.blue,
-                      ),
-                      borderRadius: BorderRadius.circular(15),
+                    padding: const EdgeInsets.only(top: 5.0),
+                    child: TextButton(
+                      onPressed: hasClaimed ? handleUnclaim : handleClaim,
+                      child: Container(
+                        width: 200.0,
+                        height: 40.0,
+                        child: Text(
+                          hasClaimed ? 'Unclaim' : 'Claim',
+                          style: const TextStyle(
+                            fontSize: 20.0,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: Colors.blue,
+                          border: Border.all(
+                            color: Colors.blue,
+                          ),
+                          borderRadius: BorderRadius.circular(15),
+                        ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ));
+    );
   }
 
-  claimItem() {
-    print("claim button clicked.");
+  
+
+  handleClaim() async {
+    //Update claimed Map
+    
+    if (!widget.item.claimedMap.containsKey(currentUser!.id)) {
+      String transactionId = Uuid().v4();
+      itemRef.doc(widget.item.postId).update({
+        'claimedMap.${currentUser!.id}': transactionId,
+        'currClaimed.${currentUser!.id}': true,
+      });
+
+      claimedMapUpToDate[currentUser!.id] = transactionId;
+
+      //Create Transaction
+      transactionRef.doc(transactionId).set({
+        'transactionId': transactionId,
+        'timestamp': timestamp,
+        'isApproved': false,
+        'isDeclined': false,
+        'isCancelled': false,
+        'itemId': widget.item.postId,
+        'founderId': widget.item.ownerId
+      });
+    } else {
+      String transactionId = widget.item.claimedMap[currentUser!.id];
+      itemRef.doc(widget.item.postId).update({
+        'currClaimed.${currentUser!.id}': true,
+      });
+      transactionRef.doc(transactionId).update({
+        'isCancelled': false
+      });
+    }
+    setState(() {
+      hasClaimed = true;
+    });
+    
+  }
+
+  handleUnclaim() async {
+    String transactionId = claimedMapUpToDate[currentUser!.id];
+    itemRef.doc(widget.item.postId).update({
+        'currClaimed.${currentUser!.id}': false,
+      });
+    transactionRef.doc(transactionId).update({
+      'isCancelled': true
+    });
+
+    setState(() {
+      hasClaimed = false;
+    });
   }
 
   @override

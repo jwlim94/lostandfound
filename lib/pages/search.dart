@@ -1,13 +1,13 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/models/item.dart';
-import 'package:flutter_application_1/models/user.dart';
 import 'package:flutter_application_1/pages/home.dart';
 import 'package:flutter_application_1/pages/item_info.dart';
+import 'package:flutter_application_1/widgets/custom_dropdown.dart';
 import 'package:flutter_application_1/widgets/custom_image.dart';
 import 'package:flutter_application_1/widgets/progress.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:string_extensions/string_extensions.dart';
 
 class Search extends StatefulWidget {
   const Search({Key? key}) : super(key: key);
@@ -17,19 +17,15 @@ class Search extends StatefulWidget {
 }
 
 class _SearchState extends State<Search> {
-  // this does not need to initialize in init and no need of dispose function
-  // this is for clearing when X is clicked in search bar
-  TextEditingController searchController = TextEditingController();
+  String itemType = '';
 
   // state variable for users retrieved to be used in build method
   Future<QuerySnapshot>? searchResultsFuture;
 
   // ?: query is passed automatically
   handleSearch(String query) {
-    // to search item without case sensitive
-    // query = query.toLowerCase();
-
     // FIXME: only give results where isClaimed false (do compound query)
+    query = query.toLowerCase();
     Future<QuerySnapshot> items = itemRef
         .where('type', isGreaterThanOrEqualTo: query)
         .where('type', isLessThan: query + 'z')
@@ -40,42 +36,60 @@ class _SearchState extends State<Search> {
     });
   }
 
-  clearSearch() {
-    searchController.clear();
-  }
-
   // FIXME: make it search through dropdown meny by item types
   AppBar buildSearchField() {
     return AppBar(
-      backgroundColor: Colors.white,
-      title: TextFormField(
-        controller: searchController,
-        cursorColor: Colors.black,
-        decoration: InputDecoration(
-          // remove underline border
-          border: InputBorder.none,
-          focusedBorder: InputBorder.none,
-          enabledBorder: InputBorder.none,
-          errorBorder: InputBorder.none,
-          disabledBorder: InputBorder.none,
-
-          hintText: 'Search item by type',
-
-          prefixIcon: const Icon(
-            Icons.search,
-            size: 28.0,
-            color: Colors.black,
-          ),
-
-          suffixIcon: IconButton(
-            icon: const Icon(Icons.clear),
-            color: Colors.black,
-            onPressed: clearSearch,
-          ),
-        ),
-        // ?: this gets called as user types in the text field
-        onFieldSubmitted: handleSearch,
+      toolbarHeight: 70.0,
+      leading: const Icon(
+        Icons.search,
+        color: Colors.black,
       ),
+      actions: <Widget>[
+        IconButton(
+          icon: const Icon(
+            Icons.check,
+            color: Colors.black,
+          ),
+          onPressed: () => handleSearch(itemType),
+        ),
+      ],
+      backgroundColor: Colors.white,
+      title: CustomDropDown(
+        onSelectedParam: (String type) {
+          setState(() {
+            itemType = type;
+          });
+        },
+      ),
+
+      // title: TextFormField(
+      //   controller: searchController,
+      //   cursorColor: Colors.black,
+      //   decoration: InputDecoration(
+      //     // remove underline border
+      //     border: InputBorder.none,
+      //     focusedBorder: InputBorder.none,
+      //     enabledBorder: InputBorder.none,
+      //     errorBorder: InputBorder.none,
+      //     disabledBorder: InputBorder.none,
+
+      //     hintText: 'Search item by type',
+
+      //     prefixIcon: const Icon(
+      //       Icons.search,
+      //       size: 28.0,
+      //       color: Colors.black,
+      //     ),
+
+      //     suffixIcon: IconButton(
+      //       icon: const Icon(Icons.clear),
+      //       color: Colors.black,
+      //       onPressed: clearSearch,
+      //     ),
+      //   ),
+      //   // ?: this gets called as user types in the text field
+      //   onFieldSubmitted: handleSearch,
+      // ),
     );
   }
 
@@ -178,7 +192,7 @@ class ItemResult extends StatelessWidget {
             child: ListTile(
               leading: cachedNetworkImage(item.mediaUrl),
               title: Text(
-                'Type: ' + item.type,
+                'Type: ' + item.type.capitalize!,
               ),
               subtitle: Text(
                 'Color: ' + item.color,
@@ -187,7 +201,7 @@ class ItemResult extends StatelessWidget {
           ),
           const Divider(
             height: 2.0,
-            color: Colors.black,
+            thickness: 1,
           ),
         ],
       ),

@@ -1,11 +1,19 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/pages/home.dart';
+import 'package:flutter_application_1/redux/state.dart';
+import 'package:flutter_application_1/redux/reducer.dart';
+import 'package:flutter_redux/flutter_redux.dart';
+import 'package:redux/redux.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const MyApp());
+  final store = Store<AppState> (
+    reducer,
+    initialState: AppState(currentUser: null),
+
+  );
+  runApp(MyApp(store));
 }
 
 // used when not using FlutterFirebase(database)
@@ -28,7 +36,13 @@ void main() {
 // }
 
 class MyApp extends StatefulWidget {
-  const MyApp({Key? key}) : super(key: key);
+  final Store<AppState> store;
+  static Store<AppState>? staticStore;
+
+  // const MyApp({Key? key, required this.store}) : super(key: key);
+  MyApp(this.store, {Key? key}) : super(key: key) {
+    staticStore = this.store;
+  }
 
   @override
   _MyAppState createState() => _MyAppState();
@@ -60,14 +74,21 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Lost & Found',
-      theme: ThemeData().copyWith(
-        colorScheme: ThemeData()
-            .colorScheme
-            .copyWith(primary: Colors.blue, secondary: Colors.teal),
-      ),
-      home: const Home(),
+    return StoreProvider<AppState>(
+      store: widget.store,
+      child: MaterialApp(
+        title: 'Lost & Found',
+        theme: ThemeData().copyWith(
+          colorScheme: ThemeData()
+              .colorScheme
+              .copyWith(primary: Colors.blue, secondary: Colors.teal),
+        ),
+        home: StoreConnector<AppState, AppState>(
+          converter: (store) => store.state,
+          builder: (context, currentUser) => Home()),
+      )
     );
+
+    
   }
 }

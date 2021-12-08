@@ -2,13 +2,16 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/main.dart';
 import 'package:flutter_application_1/models/user.dart';
 import 'package:flutter_application_1/pages/create_account.dart';
 import 'package:flutter_application_1/pages/profile.dart';
 import 'package:flutter_application_1/pages/search.dart';
 import 'package:flutter_application_1/pages/timeline.dart';
 import 'package:flutter_application_1/pages/upload.dart';
+import 'package:flutter_application_1/redux/action.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:redux/redux.dart';
 
 // global variables. This is available anywhere.
 final GoogleSignIn googleSignIn = GoogleSignIn();
@@ -17,8 +20,8 @@ final authHeaders = googleSignIn.currentUser!.authHeaders;
 // 'StorageReference' deprecated to 'Reference'
 final Reference storageRef = FirebaseStorage.instance.ref();
 final userRef = FirebaseFirestore.instance.collection('users');
-final postRef = FirebaseFirestore.instance.collection('posts');
 final itemRef = FirebaseFirestore.instance.collection('items');
+final transactionRef = FirebaseFirestore.instance.collection('transactions');
 final DateTime timestamp = DateTime.now();
 User? currentUser;
 
@@ -104,8 +107,11 @@ class _HomeState extends State<Home> {
       // currentUser is a logged in user
       // now currentUser can be used by passing through param to each pages where needed
       currentUser = User.fromDocument(doc);
-      print(currentUser);
-      print(currentUser!.username);
+
+      // Using redux to store currentUser
+      MyApp.staticStore!.dispatch(SetCurrentUserAction(currentUser));
+
+      print(currentUser!.username + " logged in.");
     }
   }
 
@@ -147,7 +153,7 @@ class _HomeState extends State<Home> {
     return Scaffold(
       body: PageView(
         children: <Widget>[
-          Timeline(currentUser: currentUser),
+          Timeline(),
           // ElevatedButton(
           //   onPressed: logout,
           //   child: const Text('Logout'),
@@ -155,9 +161,12 @@ class _HomeState extends State<Home> {
           //     primary: Colors.black,
           //   ),
           // ),
-          Upload(currentUser: currentUser),
+          Upload(),
           const Search(),
-          Profile(profileId: currentUser?.id),
+          Profile(
+            profileId: currentUser?.id,
+            fromOtherUser: false,
+          ),
         ],
         controller: pageController,
         onPageChanged: onPageChanged,

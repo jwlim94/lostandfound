@@ -18,7 +18,7 @@ AppBar header(
       style: TextStyle(
         color: Colors.black,
         fontFamily: isAppTitle ? 'Signatra' : '',
-        fontSize: isAppTitle ? 50.0 : 22.0,
+        fontSize: isAppTitle ? 35.0 : 22.0,
       ),
       overflow: TextOverflow.ellipsis,
     ),

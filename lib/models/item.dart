@@ -11,6 +11,13 @@ class Item {
   final String title;
   final String description;
   final String location;
+  //key: userId
+  //value: transactionId
+  final Map claimedMap;
+  //key: userId
+  //value: boolean
+  final Map currClaimed;
+  
 
   // constuctor
   Item({
@@ -23,6 +30,8 @@ class Item {
     required this.title,
     required this.description,
     required this.location,
+    required this.claimedMap,
+    required this.currClaimed,
   });
 
   // factory method is like a static method
@@ -38,6 +47,8 @@ class Item {
       title: doc['title'],
       description: doc['description'],
       location: doc['location'],
+      claimedMap: doc['claimedMap'] as Map,
+      currClaimed: doc['currClaimed'] as Map,
     );
   }
 }
