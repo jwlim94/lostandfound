@@ -27,6 +27,7 @@ class _SearchState extends State<Search> {
     // FIXME: only give results where isClaimed false (do compound query)
     query = query.toLowerCase();
     Future<QuerySnapshot> items = itemRef
+        // .where('isReturned', isEqualTo: false)
         .where('type', isGreaterThanOrEqualTo: query)
         .where('type', isLessThan: query + 'z')
         .get();

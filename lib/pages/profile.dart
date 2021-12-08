@@ -14,12 +14,12 @@ import 'edit_profile.dart';
 
 // FIXME: fetch claimed items as well (just like posts) to show
 class Profile extends StatefulWidget {
-  final String? profileId;
-  final bool? clickedFromBottomMenu;
+  final String profileId;
+  final bool clickedFromBottomMenu;
 
   Profile({
-    this.profileId,
-    this.clickedFromBottomMenu,
+    required this.profileId,
+    required this.clickedFromBottomMenu,
   });
 
   @override
@@ -175,7 +175,7 @@ class _ProfileState extends State<Profile> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: <Widget>[
-                            fromOtherUser
+                            fromOtherUser || !(widget.clickedFromBottomMenu)
                                 ? const Text('')
                                 : buildProfileButton(),
                           ],
@@ -205,11 +205,6 @@ class _ProfileState extends State<Profile> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-              ),
-              Container(
-                alignment: Alignment.centerLeft,
-                padding: const EdgeInsets.only(top: 2.0),
-                // child: Text(user.bio),
               ),
             ],
           ),
