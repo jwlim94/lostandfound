@@ -14,7 +14,7 @@ import 'edit_profile.dart';
 
 // FIXME: fetch claimed items as well (just like posts) to show
 class Profile extends StatefulWidget {
-  final String profileId;
+  final String? profileId;
   final bool clickedFromBottomMenu;
 
   Profile({

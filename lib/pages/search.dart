@@ -27,7 +27,7 @@ class _SearchState extends State<Search> {
     // FIXME: only give results where isClaimed false (do compound query)
     query = query.toLowerCase();
     Future<QuerySnapshot> items = itemRef
-        // .where('isReturned', isEqualTo: false)
+        .where('isReturned', isEqualTo: false)
         .where('type', isGreaterThanOrEqualTo: query)
         .where('type', isLessThan: query + 'z')
         .get();
@@ -44,6 +44,14 @@ class _SearchState extends State<Search> {
         Icons.search,
         color: Colors.black,
       ),
+      backgroundColor: Colors.white,
+      title: CustomDropDown(
+        onSelectedParam: (String type) {
+          setState(() {
+            itemType = type;
+          });
+        },
+      ),
       actions: <Widget>[
         IconButton(
           icon: const Icon(
@@ -53,14 +61,6 @@ class _SearchState extends State<Search> {
           onPressed: () => handleSearch(itemType),
         ),
       ],
-      backgroundColor: Colors.white,
-      title: CustomDropDown(
-        onSelectedParam: (String type) {
-          setState(() {
-            itemType = type;
-          });
-        },
-      ),
     );
   }
 

@@ -164,7 +164,7 @@ class _HomeState extends State<Home> {
           Upload(),
           const Search(),
           Profile(
-            profileId: currentUser!.id,
+            profileId: currentUser?.id,
             clickedFromBottomMenu: true,
           ),
         ],
