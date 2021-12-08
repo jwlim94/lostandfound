@@ -43,6 +43,8 @@ class _TimelineState extends State<Timeline> {
     // set states
     setState(() {
       isPostRetrieved = true;
+      prevItemsId.clear();
+      postItems.clear();
       items.forEach((item) {
         if (!prevItemsId.contains(item.postId)) {
           prevItemsId.add(item.postId);
@@ -76,7 +78,13 @@ class _TimelineState extends State<Timeline> {
         ),
       );
     } else {
-      return ListView(children: postItems);
+      return ListView.builder(
+        shrinkWrap: true,
+        itemCount: postItems.length,
+        itemBuilder: (BuildContext context,int index) {
+          return postItems[index];
+        }
+      );
     }
   }
 
