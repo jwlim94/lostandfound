@@ -11,6 +11,7 @@ class Item {
   final String title;
   final String description;
   final String location;
+  final bool isReturned;
   //key: userId
   //value: transactionId
   final Map claimedMap;
@@ -32,6 +33,7 @@ class Item {
     required this.location,
     required this.claimedMap,
     required this.currClaimed,
+    required this.isReturned,
   });
 
   // factory method is like a static method
@@ -49,6 +51,7 @@ class Item {
       location: doc['location'],
       claimedMap: doc['claimedMap'] as Map,
       currClaimed: doc['currClaimed'] as Map,
+      isReturned: doc['isReturned'],
     );
   }
 }

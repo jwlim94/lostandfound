@@ -8,7 +8,6 @@ import 'package:flutter_application_1/pages/home.dart';
 import 'package:flutter_application_1/widgets/custom_image.dart';
 import 'package:flutter_application_1/widgets/header.dart';
 import 'package:flutter_application_1/widgets/progress.dart';
-import 'package:image/image.dart';
 import 'package:string_extensions/string_extensions.dart';
 import 'package:uuid/uuid.dart';
 
@@ -24,6 +23,7 @@ class ItemInfo extends StatefulWidget {
 class _ItemInfoState extends State<ItemInfo> {
   late bool isAuthor;
   late bool hasClaimed;
+  late Item itemUpToDate;
   bool isLoading = true;
   User? currentUser;
   late var claimedMapUpToDate;
@@ -33,7 +33,7 @@ class _ItemInfoState extends State<ItemInfo> {
   void initState() {
     super.initState();
     currentUser = MyApp.staticStore!.state.currentUser;
-    
+    fetchItem();
     if (currentUser?.id == widget.item.ownerId) {
       fetchThoseWhoClaimed();
       setState(() {
@@ -44,35 +44,99 @@ class _ItemInfoState extends State<ItemInfo> {
       checkIfClaimed();
       setState(() {
         isAuthor = false;
+        isLoading = false;
       });
     }
   }
 
   checkIfClaimed() async { 
-    claimedMapUpToDate = widget.item.claimedMap;
-
     //key: userId of those who have claimed and not cancelled
     //value: boolean
     if (widget.item.currClaimed[currentUser!.id] == true) {
       setState(() {
         hasClaimed = true;
-        isLoading = false; 
       });
     } else {
       setState(() { 
         hasClaimed = false;
-        isLoading = false; 
       });
     }
   }
 
+  fetchItem() async {
+    itemUpToDate = Item.fromDocument(await itemRef.doc(widget.item.postId).get());
+    claimedMapUpToDate = itemUpToDate.claimedMap;
+  }
+
   fetchThoseWhoClaimed() async {
     List<User> userList = [];
-    for (String k in widget.item.currClaimed.keys) {
+    for (String k in itemUpToDate.currClaimed.keys) {
         userList.add(User.fromDocument(await userRef.doc(k).get()));
     }
     setState(() {
       claimersList = userList;
+    });
+  }
+
+  handleClaim() async {
+    //Update claimed Map
+    
+    if (!widget.item.claimedMap.containsKey(currentUser!.id)) {
+      String transactionId = Uuid().v4();
+      itemRef.doc(widget.item.postId).update({
+        'claimedMap.${currentUser!.id}': transactionId,
+        'currClaimed.${currentUser!.id}': true,
+      });
+
+      claimedMapUpToDate[currentUser!.id] = transactionId;
+
+      //Create Transaction
+      transactionRef.doc(transactionId).set({
+        'transactionId': transactionId,
+        'timestamp': timestamp,
+        'isApproved': false,
+        'isDeclined': false,
+        'isCancelled': false,
+        'itemId': widget.item.postId,
+        'founderId': widget.item.ownerId
+      });
+    } else {
+      String transactionId = widget.item.claimedMap[currentUser!.id];
+      itemRef.doc(widget.item.postId).update({
+        'currClaimed.${currentUser!.id}': true,
+      });
+      transactionRef.doc(transactionId).update({
+        'isCancelled': false
+      });
+    }
+    setState(() {
+      hasClaimed = true;
+    });
+    
+  }
+
+  handleUnclaim() async {
+    String transactionId = claimedMapUpToDate[currentUser!.id];
+    itemRef.doc(widget.item.postId).update({
+        'currClaimed.${currentUser!.id}': false,
+      });
+    transactionRef.doc(transactionId).update({
+      'isCancelled': true
+    });
+
+    setState(() {
+      hasClaimed = false;
+    });
+  }
+
+  approveClaim(String userId) async {
+    //Not dynamic 
+    String transactionId = widget.item.claimedMap[userId];
+    await transactionRef.doc(transactionId).update({
+      'isApproved': true,
+    });
+    await itemRef.doc(widget.item.postId).update({
+      'isReturned': true,
     });
   }
 
@@ -209,125 +273,76 @@ class _ItemInfoState extends State<ItemInfo> {
                   ),
                 ),
               ),
-
               Divider(),
-             
-              // List of those who claimed or claim button
-              isLoading 
-                ? circularProgress()
-                : isAuthor 
-                  ?
-                  ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: claimersList.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      
-                      return ListTile(
-                        leading: const Icon(
-                          Icons.person,
-                          color: Colors.grey,
-                          size: 35.0,
-                        ),
-                        trailing: const ElevatedButton(
-                          onPressed: null, 
-                          child: Text("Return"),
-                        ),
-                        title: Container(
-                          width: 250.0,
-                          child: Text(
-                            claimersList[index].displayName,
-                            style: const TextStyle(
-                                fontSize: 16.0, fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                      );
-                    }
-                  ) 
-                  : Container(
-                    alignment: Alignment.center,
-                    padding: const EdgeInsets.only(top: 5.0),
-                    child: TextButton(
-                      onPressed: hasClaimed ? handleUnclaim : handleClaim,
-                      child: Container(
-                        width: 200.0,
-                        height: 40.0,
-                        child: Text(
-                          hasClaimed ? 'Unclaim' : 'Claim',
-                          style: const TextStyle(
-                            fontSize: 20.0,
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: Colors.blue,
-                          border: Border.all(
-                            color: Colors.blue,
-                          ),
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                    ),
-                  ),
-                ),
+              widget.item.isReturned
+                ? Text("This item has already been returned.")
+                : claimSection(context)    
               ],
             ),
           ),
     );
   }
 
+
+  Widget claimSection(BuildContext context) {
+    return isLoading 
+      ? circularProgress()
+        : isAuthor 
+          ? ListView.builder(
+            shrinkWrap: true,
+            itemCount: claimersList.length,
+            itemBuilder: (BuildContext context, int index) {
+              return ListTile(
+                leading: const Icon(
+                  Icons.person,
+                  color: Colors.grey,
+                  size: 35.0,
+                ),
+                trailing: ElevatedButton(
+                  onPressed: (() => approveClaim(claimersList[index].id)), 
+                  child: Text("Return"),
+                ),
+                title: Container(
+                  width: 250.0,
+                  child: Text(
+                    claimersList[index].displayName,
+                    style: const TextStyle(
+                        fontSize: 16.0, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              );
+            }
+          ) 
+          : Container(
+            alignment: Alignment.center,
+            padding: const EdgeInsets.only(top: 5.0),
+            child: TextButton(
+              onPressed: hasClaimed ? handleUnclaim : handleClaim,
+              child: Container(
+                width: 200.0,
+                height: 40.0,
+                child: Text(
+                  hasClaimed ? 'Unclaim' : 'Claim',
+                  style: const TextStyle(
+                    fontSize: 20.0,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: Colors.blue,
+                  border: Border.all(
+                    color: Colors.blue,
+                  ),
+                  borderRadius: BorderRadius.circular(15),
+                ),
+            ),
+          ),
+        );
+  }
+
   
-
-  handleClaim() async {
-    //Update claimed Map
-    
-    if (!widget.item.claimedMap.containsKey(currentUser!.id)) {
-      String transactionId = Uuid().v4();
-      itemRef.doc(widget.item.postId).update({
-        'claimedMap.${currentUser!.id}': transactionId,
-        'currClaimed.${currentUser!.id}': true,
-      });
-
-      claimedMapUpToDate[currentUser!.id] = transactionId;
-
-      //Create Transaction
-      transactionRef.doc(transactionId).set({
-        'transactionId': transactionId,
-        'timestamp': timestamp,
-        'isApproved': false,
-        'isDeclined': false,
-        'isCancelled': false,
-        'itemId': widget.item.postId,
-        'founderId': widget.item.ownerId
-      });
-    } else {
-      String transactionId = widget.item.claimedMap[currentUser!.id];
-      itemRef.doc(widget.item.postId).update({
-        'currClaimed.${currentUser!.id}': true,
-      });
-      transactionRef.doc(transactionId).update({
-        'isCancelled': false
-      });
-    }
-    setState(() {
-      hasClaimed = true;
-    });
-    
-  }
-
-  handleUnclaim() async {
-    String transactionId = claimedMapUpToDate[currentUser!.id];
-    itemRef.doc(widget.item.postId).update({
-        'currClaimed.${currentUser!.id}': false,
-      });
-    transactionRef.doc(transactionId).update({
-      'isCancelled': true
-    });
-
-    setState(() {
-      hasClaimed = false;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
