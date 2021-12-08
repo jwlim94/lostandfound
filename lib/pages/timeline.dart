@@ -32,6 +32,7 @@ class _TimelineState extends State<Timeline> {
     // retrieve items doc
     QuerySnapshot snapshot = await itemRef.firestore
         .collection('items')
+        .where('isReturned', isEqualTo: false)
         .orderBy('timestamp', descending: true)
         .get();
 
@@ -82,7 +83,7 @@ class _TimelineState extends State<Timeline> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: header(context, titleText: 'Timeline', removeBackButton: true),
+        appBar: header(context, titleText: 'Lost Items', removeBackButton: true),
         body: RefreshIndicator(
             onRefresh: () => getTimeline(), child: buildTimeline()));
   }
