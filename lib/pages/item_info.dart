@@ -24,6 +24,7 @@ class _ItemInfoState extends State<ItemInfo> {
   late bool isAuthor;
   late bool hasClaimed;
   late Item itemUpToDate;
+  late bool isApproved;
   bool isLoading = true;
   User? currentUser;
   late var claimedMapUpToDate;
@@ -33,7 +34,7 @@ class _ItemInfoState extends State<ItemInfo> {
   void initState() {
     super.initState();
     currentUser = MyApp.staticStore!.state.currentUser;
-    fetchItem();
+    
     if (currentUser?.id == widget.item.ownerId) {
       fetchThoseWhoClaimed();
       setState(() {
@@ -41,6 +42,7 @@ class _ItemInfoState extends State<ItemInfo> {
         isLoading = false; 
       });
     } else {
+      fetchItem();
       checkIfClaimed();
       setState(() {
         isAuthor = false;
@@ -64,13 +66,18 @@ class _ItemInfoState extends State<ItemInfo> {
   }
 
   fetchItem() async {
-    itemUpToDate = Item.fromDocument(await itemRef.doc(widget.item.postId).get());
-    claimedMapUpToDate = itemUpToDate.claimedMap;
+    Item item = Item.fromDocument(await itemRef.doc(widget.item.postId).get());
+    setState(() {
+      itemUpToDate = item;
+      claimedMapUpToDate = itemUpToDate.claimedMap;
+    });
   }
 
   fetchThoseWhoClaimed() async {
+    await fetchItem();
     List<User> userList = [];
-    for (String k in itemUpToDate.currClaimed.keys) {
+    var currClaimed = (claimedMapUpToDate == null ? itemUpToDate : widget.item.currClaimed) as Map;
+    for (String k in currClaimed.keys) {
         userList.add(User.fromDocument(await userRef.doc(k).get()));
     }
     setState(() {
