@@ -159,24 +159,27 @@ class ItemResult extends StatefulWidget {
 class _ItemResultState extends State<ItemResult> {
   @override
   Widget build(BuildContext context) {
-    return Card(
-      semanticContainer: false,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.all(Radius.circular(4.0)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          CachedNetworkImage(imageUrl: widget.item.mediaUrl),
-          Container(
-            padding: EdgeInsets.only(
-              left: 4.0,
+    return GestureDetector(
+      onTap: () => showItemInfo(context, widget.item),
+      child: Card(
+        semanticContainer: false,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(4.0)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            CachedNetworkImage(imageUrl: widget.item.mediaUrl),
+            Container(
+              padding: EdgeInsets.only(
+                left: 4.0,
+              ),
+              child: Text(
+                widget.item.title,
+              ),
             ),
-            child: Text(
-              widget.item.title,
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
