@@ -8,32 +8,12 @@ import 'package:redux/redux.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  final store = Store<AppState> (
+  final store = Store<AppState>(
     reducer,
     initialState: AppState(currentUser: null),
-
   );
   runApp(MyApp(store));
 }
-
-// used when not using FlutterFirebase(database)
-// class MyApp extends StatelessWidget {
-//   MyApp({Key? key}) : super(key: key);
-
-// This widget is the root of your application.
-//   @override
-//   Widget build(BuildContext context) {
-//     return MaterialApp(
-//       title: 'Flutter Demo',
-//       theme: ThemeData().copyWith(
-//         colorScheme: ThemeData()
-//             .colorScheme
-//             .copyWith(primary: Colors.yellow, secondary: Colors.teal),
-//       ),
-//       home: const Home(),
-//     );
-//   }
-// }
 
 class MyApp extends StatefulWidget {
   final Store<AppState> store;
@@ -75,20 +55,17 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return StoreProvider<AppState>(
-      store: widget.store,
-      child: MaterialApp(
-        title: 'Lost & Found',
-        theme: ThemeData().copyWith(
-          colorScheme: ThemeData()
-              .colorScheme
-              .copyWith(primary: Colors.blue, secondary: Colors.teal),
-        ),
-        home: StoreConnector<AppState, AppState>(
-          converter: (store) => store.state,
-          builder: (context, currentUser) => Home()),
-      )
-    );
-
-    
+        store: widget.store,
+        child: MaterialApp(
+          title: 'Lost & Found',
+          theme: ThemeData().copyWith(
+            colorScheme: ThemeData()
+                .colorScheme
+                .copyWith(primary: Colors.blue, secondary: Colors.teal),
+          ),
+          home: StoreConnector<AppState, AppState>(
+              converter: (store) => store.state,
+              builder: (context, currentUser) => Home()),
+        ));
   }
 }

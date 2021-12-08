@@ -1,13 +1,13 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/models/item.dart';
 import 'package:flutter_application_1/pages/home.dart';
 import 'package:flutter_application_1/pages/item_info.dart';
 import 'package:flutter_application_1/widgets/custom_dropdown.dart';
-import 'package:flutter_application_1/widgets/custom_image.dart';
 import 'package:flutter_application_1/widgets/progress.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:string_extensions/string_extensions.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
 class Search extends StatefulWidget {
   const Search({Key? key}) : super(key: key);
@@ -36,7 +36,6 @@ class _SearchState extends State<Search> {
     });
   }
 
-  // FIXME: make it search through dropdown meny by item types
   AppBar buildSearchField() {
     return AppBar(
       toolbarHeight: 70.0,
@@ -61,35 +60,6 @@ class _SearchState extends State<Search> {
           });
         },
       ),
-
-      // title: TextFormField(
-      //   controller: searchController,
-      //   cursorColor: Colors.black,
-      //   decoration: InputDecoration(
-      //     // remove underline border
-      //     border: InputBorder.none,
-      //     focusedBorder: InputBorder.none,
-      //     enabledBorder: InputBorder.none,
-      //     errorBorder: InputBorder.none,
-      //     disabledBorder: InputBorder.none,
-
-      //     hintText: 'Search item by type',
-
-      //     prefixIcon: const Icon(
-      //       Icons.search,
-      //       size: 28.0,
-      //       color: Colors.black,
-      //     ),
-
-      //     suffixIcon: IconButton(
-      //       icon: const Icon(Icons.clear),
-      //       color: Colors.black,
-      //       onPressed: clearSearch,
-      //     ),
-      //   ),
-      //   // ?: this gets called as user types in the text field
-      //   onFieldSubmitted: handleSearch,
-      // ),
     );
   }
 
@@ -136,17 +106,21 @@ class _SearchState extends State<Search> {
         if (!snapshot.hasData) {
           return circularProgress();
         }
-
-        /* the reason why ItemResult is made is to store it in the List
-        searchResult and item is just the same but Item(Model) cannot be stored as a List*/
-        List<ItemResult> searchResults = [];
-        snapshot.data!.docs.forEach((doc) {
-          Item item = Item.fromDocument(doc);
-          ItemResult searchResult = ItemResult(item);
-          searchResults.add(searchResult);
-        });
-        return ListView(
-          children: searchResults,
+        return Padding(
+          padding: const EdgeInsets.all(4.0),
+          child: StaggeredGridView.count(
+            crossAxisCount: 4,
+            padding: const EdgeInsets.all(2.0),
+            children: snapshot.data!.docs.map<Widget>((doc) {
+              Item item = Item.fromDocument(doc);
+              return ItemResult(item);
+            }).toList(),
+            staggeredTiles: snapshot.data!.docs
+                .map<StaggeredTile>((_) => const StaggeredTile.fit(2))
+                .toList(),
+            mainAxisSpacing: 3.0,
+            crossAxisSpacing: 4.0,
+          ),
         );
       },
     );
@@ -173,35 +147,34 @@ showItemInfo(context, item) {
 }
 
 // showing item results from searching
-class ItemResult extends StatelessWidget {
+class ItemResult extends StatefulWidget {
   final Item item;
 
-  // constructor
   ItemResult(this.item);
 
   @override
+  _ItemResultState createState() => _ItemResultState();
+}
+
+class _ItemResultState extends State<ItemResult> {
+  @override
   Widget build(BuildContext context) {
-    // FIXME: make a bigger good UI for search result of items
-    return Container(
-      color: Colors.white,
-      margin: const EdgeInsets.all(2.0),
+    return Card(
+      semanticContainer: false,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(4.0)),
+      ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          GestureDetector(
-            onTap: () => showItemInfo(context, item),
-            child: ListTile(
-              leading: cachedNetworkImage(item.mediaUrl),
-              title: Text(
-                'Type: ' + item.type.capitalize!,
-              ),
-              subtitle: Text(
-                'Color: ' + item.color,
-              ),
+          CachedNetworkImage(imageUrl: widget.item.mediaUrl),
+          Container(
+            padding: EdgeInsets.only(
+              left: 4.0,
             ),
-          ),
-          const Divider(
-            height: 2.0,
-            thickness: 1,
+            child: Text(
+              widget.item.title,
+            ),
           ),
         ],
       ),
