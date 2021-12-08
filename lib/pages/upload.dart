@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/main.dart';
 import 'package:flutter_application_1/models/user.dart';
 import 'package:flutter_application_1/widgets/custom_dropdown.dart';
 import 'package:flutter_application_1/widgets/progress.dart';
@@ -17,9 +18,6 @@ import 'package:uuid/uuid.dart';
 import 'home.dart';
 
 class Upload extends StatefulWidget {
-  final User? currentUser;
-
-  Upload({this.currentUser});
 
   @override
   _UploadState createState() => _UploadState();
@@ -37,6 +35,7 @@ class _UploadState extends State<Upload> {
   bool isUploading = false;
   String postId = Uuid().v4();
   String itemType = '';
+  User? currentUser = MyApp.staticStore!.state.currentUser;
 
   final ImagePicker _picker = ImagePicker();
 
@@ -76,6 +75,7 @@ class _UploadState extends State<Upload> {
       //   this.file = File(file!.path);
       // });
     }
+    
   }
 
   selectImage(parentContext) {
@@ -182,8 +182,9 @@ class _UploadState extends State<Upload> {
       String? location}) {
     itemRef.doc(postId).set({
       'postId': postId,
-      'ownerId': widget.currentUser!.id,
-      'username': widget.currentUser!.username,
+      // 'ownerId': currentUser!.id,
+      'ownerId': currentUser?.id,
+      'username': currentUser!.username,
       'mediaUrl': mediaUrl,
       // to search item by not case sensitive
       'type': itemType.toLowerCase(),
@@ -192,16 +193,18 @@ class _UploadState extends State<Upload> {
       'description': description,
       'location': location,
       'timestamp': timestamp,
-      'isClaimed': false,
+      'isReturned': false,
+      'claimedMap': {},
+      'currClaimed': {},
     });
   }
 
   updateUserPostCountInFireStore() async {
-    DocumentSnapshot doc = await userRef.doc(widget.currentUser!.id).get();
+    DocumentSnapshot doc = await userRef.doc(currentUser!.id).get();
     User user = User.fromDocument(doc);
     final int currentNumPosts = user.numPosts;
 
-    userRef.doc(widget.currentUser!.id).update({
+    userRef.doc(currentUser!.id).update({
       'numPosts': currentNumPosts + 1,
     });
   }
