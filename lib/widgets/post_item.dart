@@ -28,7 +28,7 @@ class _PostItemState extends State<PostItem> {
           MaterialPageRoute(
               builder: (context) => Profile(
                     profileId: widget.item.ownerId,
-                    fromOtherUser: true,
+                    clickedFromBottomMenu: false,
                   )));
     }
 

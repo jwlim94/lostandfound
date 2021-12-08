@@ -165,7 +165,7 @@ class _HomeState extends State<Home> {
           const Search(),
           Profile(
             profileId: currentUser?.id,
-            fromOtherUser: false,
+            clickedFromBottomMenu: true,
           ),
         ],
         controller: pageController,

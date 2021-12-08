@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/main.dart';
 import 'package:flutter_application_1/models/item.dart';
 import 'package:flutter_application_1/models/user.dart';
 import 'package:flutter_application_1/pages/home.dart';
@@ -14,11 +15,11 @@ import 'edit_profile.dart';
 // FIXME: fetch claimed items as well (just like posts) to show
 class Profile extends StatefulWidget {
   final String? profileId;
-  bool fromOtherUser = false;
+  final bool? clickedFromBottomMenu;
 
   Profile({
     this.profileId,
-    required this.fromOtherUser,
+    this.clickedFromBottomMenu,
   });
 
   @override
@@ -28,6 +29,7 @@ class Profile extends StatefulWidget {
 class _ProfileState extends State<Profile> {
   // this might be different when viewing other people's profile
   final String? currentUserId = currentUser?.id;
+  late final bool fromOtherUser;
 
   // default to show posts
   String postOrientation = 'posts';
@@ -40,6 +42,8 @@ class _ProfileState extends State<Profile> {
   void initState() {
     super.initState();
     getProfilePosts();
+    fromOtherUser =
+        MyApp.staticStore!.state.currentUser!.id != widget.profileId;
   }
 
   // fetching posts from 'post.dart'
@@ -171,7 +175,7 @@ class _ProfileState extends State<Profile> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: <Widget>[
-                            widget.fromOtherUser
+                            fromOtherUser
                                 ? const Text('')
                                 : buildProfileButton(),
                           ],
@@ -286,44 +290,56 @@ class _ProfileState extends State<Profile> {
     });
   }
 
+  GestureDetector showPostToggle() {
+    return GestureDetector(
+      /* without () => syntax, setPostOrientation() gets called automatically
+          by putting () => syntax, if only works when we click */
+      onTap: () => setPostOrientation('posts'),
+      child: Container(
+        padding: const EdgeInsets.all(12.0),
+        child: Text(
+          'Posts',
+          style: TextStyle(
+            color: postOrientation == 'posts' ? Colors.blue : Colors.grey,
+            fontSize: 16.0,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+  }
+
+  GestureDetector showClaimToggle() {
+    return GestureDetector(
+      /* without () => syntax, setPostOrientation() gets called automatically
+          by putting () => syntax, if only works when we click */
+      onTap: () => setPostOrientation('claims'),
+      child: Container(
+        padding: const EdgeInsets.all(12.0),
+        child: Text(
+          'Claims',
+          style: TextStyle(
+            color: postOrientation == 'claims' ? Colors.blue : Colors.grey,
+            fontSize: 16.0,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+  }
+
   // toggle between posts and claims to show users of those items
   buildTogglePostOrientation() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: <Widget>[
-        GestureDetector(
-          /* without () => syntax, setPostOrientation() gets called automatically
-          by putting () => syntax, if only works when we click */
-          onTap: () => setPostOrientation('posts'),
-          child: Container(
-            padding: const EdgeInsets.all(12.0),
-            child: Text(
-              'Posts',
-              style: TextStyle(
-                color: postOrientation == 'posts' ? Colors.blue : Colors.grey,
-                fontSize: 16.0,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ),
-        GestureDetector(
-          /* without () => syntax, setPostOrientation() gets called automatically
-          by putting () => syntax, if only works when we click */
-          onTap: () => setPostOrientation('claims'),
-          child: Container(
-            padding: const EdgeInsets.all(12.0),
-            child: Text(
-              'Claims',
-              style: TextStyle(
-                color: postOrientation == 'claims' ? Colors.blue : Colors.grey,
-                fontSize: 16.0,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ),
-      ],
+      children: fromOtherUser
+          ? <Widget>[
+              showPostToggle(),
+            ]
+          : <Widget>[
+              showPostToggle(),
+              showClaimToggle(),
+            ],
     );
   }
 
@@ -333,7 +349,7 @@ class _ProfileState extends State<Profile> {
       appBar: header(
         context,
         titleText: 'Profile',
-        removeBackButton: !widget.fromOtherUser,
+        removeBackButton: widget.clickedFromBottomMenu,
       ),
       body: ListView(
         children: <Widget>[
