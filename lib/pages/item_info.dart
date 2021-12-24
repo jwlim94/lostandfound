@@ -34,12 +34,12 @@ class _ItemInfoState extends State<ItemInfo> {
   void initState() {
     super.initState();
     currentUser = MyApp.staticStore!.state.currentUser;
-    
+
     if (currentUser?.id == widget.item.ownerId) {
       fetchThoseWhoClaimed();
       setState(() {
         isAuthor = true;
-        isLoading = false; 
+        isLoading = false;
       });
     } else {
       fetchItem();
@@ -51,7 +51,7 @@ class _ItemInfoState extends State<ItemInfo> {
     }
   }
 
-  checkIfClaimed() async { 
+  checkIfClaimed() async {
     //key: userId of those who have claimed and not cancelled
     //value: boolean
     if (widget.item.currClaimed[currentUser!.id] == true) {
@@ -59,7 +59,7 @@ class _ItemInfoState extends State<ItemInfo> {
         hasClaimed = true;
       });
     } else {
-      setState(() { 
+      setState(() {
         hasClaimed = false;
       });
     }
@@ -76,9 +76,11 @@ class _ItemInfoState extends State<ItemInfo> {
   fetchThoseWhoClaimed() async {
     await fetchItem();
     List<User> userList = [];
-    var currClaimed = (claimedMapUpToDate == null ? itemUpToDate : widget.item.currClaimed) as Map;
+    var currClaimed = (claimedMapUpToDate == null
+        ? itemUpToDate
+        : widget.item.currClaimed) as Map;
     for (String k in currClaimed.keys) {
-        userList.add(User.fromDocument(await userRef.doc(k).get()));
+      userList.add(User.fromDocument(await userRef.doc(k).get()));
     }
     setState(() {
       claimersList = userList;
@@ -87,7 +89,7 @@ class _ItemInfoState extends State<ItemInfo> {
 
   handleClaim() async {
     //Update claimed Map
-    
+
     if (!widget.item.claimedMap.containsKey(currentUser!.id)) {
       String transactionId = Uuid().v4();
       itemRef.doc(widget.item.postId).update({
@@ -112,24 +114,19 @@ class _ItemInfoState extends State<ItemInfo> {
       itemRef.doc(widget.item.postId).update({
         'currClaimed.${currentUser!.id}': true,
       });
-      transactionRef.doc(transactionId).update({
-        'isCancelled': false
-      });
+      transactionRef.doc(transactionId).update({'isCancelled': false});
     }
     setState(() {
       hasClaimed = true;
     });
-    
   }
 
   handleUnclaim() async {
     String transactionId = claimedMapUpToDate[currentUser!.id];
     itemRef.doc(widget.item.postId).update({
-        'currClaimed.${currentUser!.id}': false,
-      });
-    transactionRef.doc(transactionId).update({
-      'isCancelled': true
+      'currClaimed.${currentUser!.id}': false,
     });
+    transactionRef.doc(transactionId).update({'isCancelled': true});
 
     setState(() {
       hasClaimed = false;
@@ -137,7 +134,7 @@ class _ItemInfoState extends State<ItemInfo> {
   }
 
   approveClaim(String userId) async {
-    //Not dynamic 
+    //Not dynamic
     String transactionId = widget.item.claimedMap[userId];
     await transactionRef.doc(transactionId).update({
       'isApproved': true,
@@ -149,207 +146,200 @@ class _ItemInfoState extends State<ItemInfo> {
 
   Scaffold buildInfoScreen(context) {
     return Scaffold(
-        appBar: header(
-          context,
-          titleText: widget.item.title,
-        ),
-        body: Center(
-          child: ListView(
-            children: <Widget>[
-              const Padding(
-                padding: EdgeInsets.only(
-                  top: 32.0,
+      appBar: header(
+        context,
+        titleText: widget.item.title,
+      ),
+      body: Center(
+        child: ListView(
+          children: <Widget>[
+            const Padding(
+              padding: EdgeInsets.only(
+                top: 32.0,
+              ),
+            ),
+            // image
+            SizedBox(
+              height: 220.0,
+              width: MediaQuery.of(context).size.width * 0.8,
+              child: Center(
+                child: AspectRatio(
+                  aspectRatio: 16 / 9,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: <Widget>[
+                      // this is from 'custom_image.dart' to show an image
+                      // in better user experience way in profile
+                      cachedNetworkImage(
+                        widget.item.mediaUrl,
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              // image
-              SizedBox(
-                height: 220.0,
-                width: MediaQuery.of(context).size.width * 0.8,
-                child: Center(
-                  child: AspectRatio(
-                    aspectRatio: 16 / 9,
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: <Widget>[
-                        // this is from 'custom_image.dart' to show an image
-                        // in better user experience way in profile
-                        cachedNetworkImage(
-                          widget.item.mediaUrl,
-                        ),
-                      ],
+            ),
+            const Padding(
+              padding: EdgeInsets.only(top: 10.0),
+            ),
+
+            // type
+            ListTile(
+              leading: const Icon(
+                Icons.list,
+                color: Colors.black,
+                size: 35.0,
+              ),
+              title: Container(
+                width: 250.0,
+                child: Text(
+                  widget.item.type.capitalize!,
+                  style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+
+            // Color
+            ListTile(
+              leading: const Icon(
+                Icons.colorize,
+                color: Colors.black,
+                size: 35.0,
+              ),
+              title: Container(
+                width: 250.0,
+                child: Text(
+                  widget.item.color,
+                  style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+
+            // location
+            ListTile(
+              leading: const Icon(
+                Icons.pin_drop,
+                color: Colors.red,
+                size: 35.0,
+              ),
+              title: Container(
+                width: 250.0,
+                child: Text(
+                  widget.item.location,
+                  style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+
+            // timestamp
+            FutureBuilder(
+              future: itemRef.doc(widget.item.postId).get(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return circularProgress();
+                }
+                Timestamp time =
+                    (snapshot.data as DocumentSnapshot).get('timestamp');
+
+                return ListTile(
+                  leading: const Icon(
+                    Icons.date_range,
+                    color: Colors.orange,
+                    size: 35.0,
+                  ),
+                  title: Container(
+                    width: 250.0,
+                    child: Text(
+                      time.toDate().toString(),
+                      style: const TextStyle(
+                          fontSize: 16.0, fontWeight: FontWeight.bold),
                     ),
                   ),
+                );
+              },
+            ),
+
+            // description
+            ListTile(
+              leading: const Icon(
+                Icons.description,
+                color: Colors.black,
+                size: 35.0,
+              ),
+              title: Container(
+                width: 250.0,
+                child: Text(
+                  widget.item.description,
+                  style: const TextStyle(
+                      fontSize: 16.0, fontWeight: FontWeight.bold),
                 ),
               ),
-              const Padding(
-                padding: EdgeInsets.only(top: 10.0),
-              ),
+            ),
+            const Divider(),
+            widget.item.isReturned
+                ? const Text("This item has already been returned.")
+                : claimSection(context)
+          ],
+        ),
+      ),
+    );
+  }
 
-              // type
-              ListTile(
-                leading: const Icon(
-                  Icons.list,
-                  color: Colors.black,
-                  size: 35.0,
-                ),
-                title: Container(
-                  width: 250.0,
-                  child: Text(
-                    widget.item.type.capitalize!,
-                    style:
-                        TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-
-              // Color
-              ListTile(
-                leading: const Icon(
-                  Icons.colorize,
-                  color: Colors.black,
-                  size: 35.0,
-                ),
-                title: Container(
-                  width: 250.0,
-                  child: Text(
-                    widget.item.color,
-                    style:
-                        TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-
-              // location
-              ListTile(
-                leading: const Icon(
-                  Icons.pin_drop,
-                  color: Colors.red,
-                  size: 35.0,
-                ),
-                title: Container(
-                  width: 250.0,
-                  child: Text(
-                    widget.item.location,
-                    style:
-                        TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-
-              // timestamp
-              FutureBuilder(
-                future: itemRef.doc(widget.item.postId).get(),
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData) {
-                    return circularProgress();
-                  }
-                  Timestamp time =
-                      (snapshot.data as DocumentSnapshot).get('timestamp');
-
+  Widget claimSection(BuildContext context) {
+    return isLoading
+        ? circularProgress()
+        : isAuthor
+            ? ListView.builder(
+                shrinkWrap: true,
+                itemCount: claimersList.length,
+                itemBuilder: (BuildContext context, int index) {
                   return ListTile(
                     leading: const Icon(
-                      Icons.date_range,
-                      color: Colors.orange,
+                      Icons.person,
+                      color: Colors.grey,
                       size: 35.0,
+                    ),
+                    trailing: ElevatedButton(
+                      onPressed: (() => approveClaim(claimersList[index].id)),
+                      child: const Text("Return"),
                     ),
                     title: Container(
                       width: 250.0,
                       child: Text(
-                        time.toDate().toString(),
-                        style: TextStyle(
+                        claimersList[index].displayName,
+                        style: const TextStyle(
                             fontSize: 16.0, fontWeight: FontWeight.bold),
                       ),
                     ),
                   );
-                },
-              ),
-
-              // description
-              ListTile(
-                leading: const Icon(
-                  Icons.description,
-                  color: Colors.black,
-                  size: 35.0,
-                ),
-                title: Container(
-                  width: 250.0,
-                  child: Text(
-                    widget.item.description,
-                    style:
-                        TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-              Divider(),
-              widget.item.isReturned
-                ? Text("This item has already been returned.")
-                : claimSection(context)    
-              ],
-            ),
-          ),
-    );
-  }
-
-
-  Widget claimSection(BuildContext context) {
-    return isLoading 
-      ? circularProgress()
-        : isAuthor 
-          ? ListView.builder(
-            shrinkWrap: true,
-            itemCount: claimersList.length,
-            itemBuilder: (BuildContext context, int index) {
-              return ListTile(
-                leading: const Icon(
-                  Icons.person,
-                  color: Colors.grey,
-                  size: 35.0,
-                ),
-                trailing: ElevatedButton(
-                  onPressed: (() => approveClaim(claimersList[index].id)), 
-                  child: Text("Return"),
-                ),
-                title: Container(
-                  width: 250.0,
-                  child: Text(
-                    claimersList[index].displayName,
-                    style: const TextStyle(
-                        fontSize: 16.0, fontWeight: FontWeight.bold),
+                })
+            : Container(
+                alignment: Alignment.center,
+                padding: const EdgeInsets.only(top: 5.0),
+                child: TextButton(
+                  onPressed: hasClaimed ? handleUnclaim : handleClaim,
+                  child: Container(
+                    width: 200.0,
+                    height: 40.0,
+                    child: Text(
+                      hasClaimed ? 'Unclaim' : 'Claim',
+                      style: const TextStyle(
+                        fontSize: 20.0,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: Colors.blue,
+                      border: Border.all(
+                        color: Colors.blue,
+                      ),
+                      borderRadius: BorderRadius.circular(15),
+                    ),
                   ),
                 ),
               );
-            }
-          ) 
-          : Container(
-            alignment: Alignment.center,
-            padding: const EdgeInsets.only(top: 5.0),
-            child: TextButton(
-              onPressed: hasClaimed ? handleUnclaim : handleClaim,
-              child: Container(
-                width: 200.0,
-                height: 40.0,
-                child: Text(
-                  hasClaimed ? 'Unclaim' : 'Claim',
-                  style: const TextStyle(
-                    fontSize: 20.0,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: Colors.blue,
-                  border: Border.all(
-                    color: Colors.blue,
-                  ),
-                  borderRadius: BorderRadius.circular(15),
-                ),
-            ),
-          ),
-        );
   }
-
-  
 
   @override
   Widget build(BuildContext context) {
